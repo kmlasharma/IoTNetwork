@@ -1,5 +1,7 @@
 
 #include <omnetpp.h>
+#include "CoAP_m.h"
+#include "AggregatedPacket_m.h"
 
 using namespace omnetpp;
 
@@ -25,11 +27,15 @@ void IntermediateRouter::initialize()
 void IntermediateRouter::handleMessage(cMessage *msg)
 {
     // determine destination address
-    cPacket *pkt = check_and_cast<cPacket *>(msg);
-    int dest = pkt->par("destAddr").longValue();
-    EV << "Relaying packet to addr=" << dest << endl;
-    std::cout << "\nThis is destination: " << dest;
-    // send msg to destination after the delay
-    send(pkt, "out", dest);
+    if (strcmp(msg->getClassName(), "CoAP") == 0) {
+        CoAP *pkt = check_and_cast<CoAP *>(msg);
+        int dest = pkt->getDestAddress();
+        send(pkt, "out", dest);
+    } else if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
+        AggregatedPacket *pkt = check_and_cast<AggregatedPacket *>(msg);
+        int dest = pkt->getDestAddress();
+        send(pkt, "out", dest);
+    }
+
 }
 

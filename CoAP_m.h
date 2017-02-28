@@ -18,8 +18,12 @@
 
 
 
+// cplusplus {{
+	#include "IoTPacket_m.h"
+// }}
+
 /**
- * Enum generated from <tt>CoAP.msg:2</tt> by nedtool.
+ * Enum generated from <tt>CoAP.msg:6</tt> by nedtool.
  * <pre>
  * enum packetType
  * {
@@ -39,7 +43,7 @@ enum packetType {
 };
 
 /**
- * Enum generated from <tt>CoAP.msg:10</tt> by nedtool.
+ * Enum generated from <tt>CoAP.msg:14</tt> by nedtool.
  * <pre>
  * enum packetCode
  * {
@@ -59,34 +63,28 @@ enum packetCode {
 };
 
 /**
- * Class generated from <tt>CoAP.msg:18</tt> by nedtool.
+ * Class generated from <tt>CoAP.msg:24</tt> by nedtool.
  * <pre>
- * packet CoAP extends cPacket
+ * packet CoAP extends IoTPacket
  * {
- *     int srcAddress;
- *     int destAddress;
  *     int type \@enum(packetType);
  *     int code \@enum(packetCode);
  *     bool hasToken;
  *     bool hasOptions;
  *     bool hasPayload;
  *     string payload;
- *     int packetSize;
  * }
  * </pre>
  */
-class CoAP : public ::omnetpp::cPacket
+class CoAP : public ::IoTPacket
 {
   protected:
-    int srcAddress;
-    int destAddress;
     int type;
     int code;
     bool hasToken;
     bool hasOptions;
     bool hasPayload;
     ::omnetpp::opp_string payload;
-    int packetSize;
 
   private:
     void copy(const CoAP& other);
@@ -105,10 +103,6 @@ class CoAP : public ::omnetpp::cPacket
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
-    virtual int getSrcAddress() const;
-    virtual void setSrcAddress(int srcAddress);
-    virtual int getDestAddress() const;
-    virtual void setDestAddress(int destAddress);
     virtual int getType() const;
     virtual void setType(int type);
     virtual int getCode() const;
@@ -121,8 +115,6 @@ class CoAP : public ::omnetpp::cPacket
     virtual void setHasPayload(bool hasPayload);
     virtual const char * getPayload() const;
     virtual void setPayload(const char * payload);
-    virtual int getPacketSize() const;
-    virtual void setPacketSize(int packetSize);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const CoAP& obj) {obj.parsimPack(b);}

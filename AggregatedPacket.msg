@@ -1,16 +1,16 @@
 
 
 cplusplus {{
-	#include "CoAP_m.h"
-	typedef std::vector<CoAP *> ListOfCoAPPackets;
+	#include "IoTPacket_m.h"
+	typedef std::vector<IoTPacket *> ListOfPackets;
 }};
 
-class noncobject ListOfCoAPPackets; 
+class noncobject ListOfPackets; 
 
 packet AggregatedPacket extends cPacket
 {
     int destAddress;
     int packetSize;
     int maxSize = 1500;
-	ListOfCoAPPackets listOfPackets;
+	ListOfPackets listOfPackets;
 }

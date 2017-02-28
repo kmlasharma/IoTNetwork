@@ -259,12 +259,12 @@ void AggregatedPacket::setMaxSize(int maxSize)
     this->maxSize = maxSize;
 }
 
-ListOfCoAPPackets& AggregatedPacket::getListOfPackets()
+ListOfPackets& AggregatedPacket::getListOfPackets()
 {
     return this->listOfPackets;
 }
 
-void AggregatedPacket::setListOfPackets(const ListOfCoAPPackets& listOfPackets)
+void AggregatedPacket::setListOfPackets(const ListOfPackets& listOfPackets)
 {
     this->listOfPackets = listOfPackets;
 }
@@ -394,7 +394,7 @@ const char *AggregatedPacketDescriptor::getFieldTypeString(int field) const
         "int",
         "int",
         "int",
-        "ListOfCoAPPackets",
+        "ListOfPackets",
     };
     return (field>=0 && field<4) ? fieldTypeStrings[field] : nullptr;
 }
@@ -497,7 +497,7 @@ const char *AggregatedPacketDescriptor::getFieldStructName(int field) const
         field -= basedesc->getFieldCount();
     }
     switch (field) {
-        case 3: return omnetpp::opp_typename(typeid(ListOfCoAPPackets));
+        case 3: return omnetpp::opp_typename(typeid(ListOfPackets));
         default: return nullptr;
     };
 }

@@ -36,7 +36,9 @@ network IoTNetwork
         IoTClient[12]: IoTClient {
             parameters:
                 hostAddr = 2+index;
-                protocol = "CoAP, MQTT";
+//                protocols = "CoAP,MQTT";
+//                delimiter = ",";
+//                numProtocols = 2;
                 @display("p=48,97,col");
         }
 

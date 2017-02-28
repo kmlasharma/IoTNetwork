@@ -19,8 +19,8 @@
 
 
 // cplusplus {{
-	#include "CoAP_m.h"
-	typedef std::vector<CoAP *> ListOfCoAPPackets;
+	#include "IoTPacket_m.h"
+	typedef std::vector<IoTPacket *> ListOfPackets;
 // }}
 
 /**
@@ -31,7 +31,7 @@
  *     int destAddress;
  *     int packetSize;
  *     int maxSize = 1500;
- *     ListOfCoAPPackets listOfPackets;
+ *     ListOfPackets listOfPackets;
  * }
  * </pre>
  */
@@ -41,7 +41,7 @@ class AggregatedPacket : public ::omnetpp::cPacket
     int destAddress;
     int packetSize;
     int maxSize;
-    ListOfCoAPPackets listOfPackets;
+    ListOfPackets listOfPackets;
 
   private:
     void copy(const AggregatedPacket& other);
@@ -66,9 +66,9 @@ class AggregatedPacket : public ::omnetpp::cPacket
     virtual void setPacketSize(int packetSize);
     virtual int getMaxSize() const;
     virtual void setMaxSize(int maxSize);
-    virtual ListOfCoAPPackets& getListOfPackets();
-    virtual const ListOfCoAPPackets& getListOfPackets() const {return const_cast<AggregatedPacket*>(this)->getListOfPackets();}
-    virtual void setListOfPackets(const ListOfCoAPPackets& listOfPackets);
+    virtual ListOfPackets& getListOfPackets();
+    virtual const ListOfPackets& getListOfPackets() const {return const_cast<AggregatedPacket*>(this)->getListOfPackets();}
+    virtual void setListOfPackets(const ListOfPackets& listOfPackets);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const AggregatedPacket& obj) {obj.parsimPack(b);}

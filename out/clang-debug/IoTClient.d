@@ -1,5 +1,6 @@
 out/clang-debug//IoTClient.o: IoTClient.cc \
   /Users/KmlaSharma/Downloads/omnetpp-5.1pre3/include/omnetpp.h CoAP_m.h \
+  IoTPacket_m.h MQTT_m.h \
   /Users/KmlaSharma/Downloads/inet/src/inet/transportlayer/udp/UDPPacket.h \
   /Users/KmlaSharma/Downloads/inet/src/inet/transportlayer/contract/ITransportPacket.h \
   /Users/KmlaSharma/Downloads/inet/src/inet/common/INETDefs.h \
@@ -23,6 +24,10 @@ out/clang-debug//IoTClient.o: IoTClient.cc \
 /Users/KmlaSharma/Downloads/omnetpp-5.1pre3/include/omnetpp.h:
 
 CoAP_m.h:
+
+IoTPacket_m.h:
+
+MQTT_m.h:
 
 /Users/KmlaSharma/Downloads/inet/src/inet/transportlayer/udp/UDPPacket.h:
 

@@ -35,12 +35,16 @@ OBJS = \
     $O/Router.o \
     $O/Server.o \
     $O/AggregatedPacket_m.o \
-    $O/CoAP_m.o
+    $O/CoAP_m.o \
+    $O/IoTPacket_m.o \
+    $O/MQTT_m.o
 
 # Message files
 MSGFILES = \
     AggregatedPacket.msg \
-    CoAP.msg
+    CoAP.msg \
+    IoTPacket.msg \
+    MQTT.msg
 
 # SM files
 SMFILES =

@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.1 from CoAP.msg.
+// Generated file, do not edit! Created by nedtool 5.1 from MQTT.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -26,7 +26,7 @@
 
 #include <iostream>
 #include <sstream>
-#include "CoAP_m.h"
+#include "MQTT_m.h"
 
 namespace omnetpp {
 
@@ -178,44 +178,43 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
 }
 
 EXECUTE_ON_STARTUP(
-    omnetpp::cEnum *e = omnetpp::cEnum::find("packetType");
-    if (!e) omnetpp::enums.getInstance()->add(e = new omnetpp::cEnum("packetType"));
-    e->insert(CONFIRMABLE, "CONFIRMABLE");
-    e->insert(NON_CONFIRMABLE, "NON_CONFIRMABLE");
-    e->insert(ACK, "ACK");
-    e->insert(RESET, "RESET");
+    omnetpp::cEnum *e = omnetpp::cEnum::find("controlType");
+    if (!e) omnetpp::enums.getInstance()->add(e = new omnetpp::cEnum("controlType"));
+    e->insert(CONNECT, "CONNECT");
+    e->insert(CONNACK, "CONNACK");
+    e->insert(PUBLISH, "PUBLISH");
+    e->insert(PUBACK, "PUBACK");
+    e->insert(PUBREC, "PUBREC");
+    e->insert(PUBREL, "PUBREL");
+    e->insert(PUBCOMP, "PUBCOMP");
+    e->insert(SUBSCRIBE, "SUBSCRIBE");
+    e->insert(SUBACK, "SUBACK");
+    e->insert(UNSUBSCRIBE, "UNSUBSCRIBE");
+    e->insert(UNSUBACK, "UNSUBACK");
+    e->insert(PINGREQ, "PINGREQ");
+    e->insert(PINGRESP, "PINGRESP");
+    e->insert(DISCONNECT, "DISCONNECT");
 )
 
-EXECUTE_ON_STARTUP(
-    omnetpp::cEnum *e = omnetpp::cEnum::find("packetCode");
-    if (!e) omnetpp::enums.getInstance()->add(e = new omnetpp::cEnum("packetCode"));
-    e->insert(REQUEST, "REQUEST");
-    e->insert(SUCCESS, "SUCCESS");
-    e->insert(CLIENT_ERROR, "CLIENT_ERROR");
-    e->insert(SERVER_ERROR, "SERVER_ERROR");
-)
+Register_Class(MQTT)
 
-Register_Class(CoAP)
-
-CoAP::CoAP(const char *name, short kind) : ::IoTPacket(name,kind)
+MQTT::MQTT(const char *name, short kind) : ::IoTPacket(name,kind)
 {
-    this->type = 0;
-    this->code = 0;
-    this->hasToken = false;
-    this->hasOptions = false;
+    this->controlType = 0;
+    this->hasVariableHeader = false;
     this->hasPayload = false;
 }
 
-CoAP::CoAP(const CoAP& other) : ::IoTPacket(other)
+MQTT::MQTT(const MQTT& other) : ::IoTPacket(other)
 {
     copy(other);
 }
 
-CoAP::~CoAP()
+MQTT::~MQTT()
 {
 }
 
-CoAP& CoAP::operator=(const CoAP& other)
+MQTT& MQTT::operator=(const MQTT& other)
 {
     if (this==&other) return *this;
     ::IoTPacket::operator=(other);
@@ -223,105 +222,66 @@ CoAP& CoAP::operator=(const CoAP& other)
     return *this;
 }
 
-void CoAP::copy(const CoAP& other)
+void MQTT::copy(const MQTT& other)
 {
-    this->type = other.type;
-    this->code = other.code;
-    this->hasToken = other.hasToken;
-    this->hasOptions = other.hasOptions;
+    this->controlType = other.controlType;
+    this->hasVariableHeader = other.hasVariableHeader;
     this->hasPayload = other.hasPayload;
-    this->payload = other.payload;
 }
 
-void CoAP::parsimPack(omnetpp::cCommBuffer *b) const
+void MQTT::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::IoTPacket::parsimPack(b);
-    doParsimPacking(b,this->type);
-    doParsimPacking(b,this->code);
-    doParsimPacking(b,this->hasToken);
-    doParsimPacking(b,this->hasOptions);
+    doParsimPacking(b,this->controlType);
+    doParsimPacking(b,this->hasVariableHeader);
     doParsimPacking(b,this->hasPayload);
-    doParsimPacking(b,this->payload);
 }
 
-void CoAP::parsimUnpack(omnetpp::cCommBuffer *b)
+void MQTT::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::IoTPacket::parsimUnpack(b);
-    doParsimUnpacking(b,this->type);
-    doParsimUnpacking(b,this->code);
-    doParsimUnpacking(b,this->hasToken);
-    doParsimUnpacking(b,this->hasOptions);
+    doParsimUnpacking(b,this->controlType);
+    doParsimUnpacking(b,this->hasVariableHeader);
     doParsimUnpacking(b,this->hasPayload);
-    doParsimUnpacking(b,this->payload);
 }
 
-int CoAP::getType() const
+int MQTT::getControlType() const
 {
-    return this->type;
+    return this->controlType;
 }
 
-void CoAP::setType(int type)
+void MQTT::setControlType(int controlType)
 {
-    this->type = type;
+    this->controlType = controlType;
 }
 
-int CoAP::getCode() const
+bool MQTT::getHasVariableHeader() const
 {
-    return this->code;
+    return this->hasVariableHeader;
 }
 
-void CoAP::setCode(int code)
+void MQTT::setHasVariableHeader(bool hasVariableHeader)
 {
-    this->code = code;
+    this->hasVariableHeader = hasVariableHeader;
 }
 
-bool CoAP::getHasToken() const
-{
-    return this->hasToken;
-}
-
-void CoAP::setHasToken(bool hasToken)
-{
-    this->hasToken = hasToken;
-}
-
-bool CoAP::getHasOptions() const
-{
-    return this->hasOptions;
-}
-
-void CoAP::setHasOptions(bool hasOptions)
-{
-    this->hasOptions = hasOptions;
-}
-
-bool CoAP::getHasPayload() const
+bool MQTT::getHasPayload() const
 {
     return this->hasPayload;
 }
 
-void CoAP::setHasPayload(bool hasPayload)
+void MQTT::setHasPayload(bool hasPayload)
 {
     this->hasPayload = hasPayload;
 }
 
-const char * CoAP::getPayload() const
-{
-    return this->payload.c_str();
-}
-
-void CoAP::setPayload(const char * payload)
-{
-    this->payload = payload;
-}
-
-class CoAPDescriptor : public omnetpp::cClassDescriptor
+class MQTTDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
   public:
-    CoAPDescriptor();
-    virtual ~CoAPDescriptor();
+    MQTTDescriptor();
+    virtual ~MQTTDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -343,24 +303,24 @@ class CoAPDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(CoAPDescriptor)
+Register_ClassDescriptor(MQTTDescriptor)
 
-CoAPDescriptor::CoAPDescriptor() : omnetpp::cClassDescriptor("CoAP", "IoTPacket")
+MQTTDescriptor::MQTTDescriptor() : omnetpp::cClassDescriptor("MQTT", "IoTPacket")
 {
     propertynames = nullptr;
 }
 
-CoAPDescriptor::~CoAPDescriptor()
+MQTTDescriptor::~MQTTDescriptor()
 {
     delete[] propertynames;
 }
 
-bool CoAPDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool MQTTDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<CoAP *>(obj)!=nullptr;
+    return dynamic_cast<MQTT *>(obj)!=nullptr;
 }
 
-const char **CoAPDescriptor::getPropertyNames() const
+const char **MQTTDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -371,19 +331,19 @@ const char **CoAPDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *CoAPDescriptor::getProperty(const char *propertyname) const
+const char *MQTTDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int CoAPDescriptor::getFieldCount() const
+int MQTTDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 6+basedesc->getFieldCount() : 6;
+    return basedesc ? 3+basedesc->getFieldCount() : 3;
 }
 
-unsigned int CoAPDescriptor::getFieldTypeFlags(int field) const
+unsigned int MQTTDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -395,14 +355,11 @@ unsigned int CoAPDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,
         FD_ISEDITABLE,
         FD_ISEDITABLE,
-        FD_ISEDITABLE,
-        FD_ISEDITABLE,
-        FD_ISEDITABLE,
     };
-    return (field>=0 && field<6) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
 }
 
-const char *CoAPDescriptor::getFieldName(int field) const
+const char *MQTTDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -411,30 +368,24 @@ const char *CoAPDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "type",
-        "code",
-        "hasToken",
-        "hasOptions",
+        "controlType",
+        "hasVariableHeader",
         "hasPayload",
-        "payload",
     };
-    return (field>=0 && field<6) ? fieldNames[field] : nullptr;
+    return (field>=0 && field<3) ? fieldNames[field] : nullptr;
 }
 
-int CoAPDescriptor::findField(const char *fieldName) const
+int MQTTDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0]=='t' && strcmp(fieldName, "type")==0) return base+0;
-    if (fieldName[0]=='c' && strcmp(fieldName, "code")==0) return base+1;
-    if (fieldName[0]=='h' && strcmp(fieldName, "hasToken")==0) return base+2;
-    if (fieldName[0]=='h' && strcmp(fieldName, "hasOptions")==0) return base+3;
-    if (fieldName[0]=='h' && strcmp(fieldName, "hasPayload")==0) return base+4;
-    if (fieldName[0]=='p' && strcmp(fieldName, "payload")==0) return base+5;
+    if (fieldName[0]=='c' && strcmp(fieldName, "controlType")==0) return base+0;
+    if (fieldName[0]=='h' && strcmp(fieldName, "hasVariableHeader")==0) return base+1;
+    if (fieldName[0]=='h' && strcmp(fieldName, "hasPayload")==0) return base+2;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *CoAPDescriptor::getFieldTypeString(int field) const
+const char *MQTTDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -444,16 +395,13 @@ const char *CoAPDescriptor::getFieldTypeString(int field) const
     }
     static const char *fieldTypeStrings[] = {
         "int",
-        "int",
         "bool",
         "bool",
-        "bool",
-        "string",
     };
-    return (field>=0 && field<6) ? fieldTypeStrings[field] : nullptr;
+    return (field>=0 && field<3) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **CoAPDescriptor::getFieldPropertyNames(int field) const
+const char **MQTTDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -466,15 +414,11 @@ const char **CoAPDescriptor::getFieldPropertyNames(int field) const
             static const char *names[] = { "enum",  nullptr };
             return names;
         }
-        case 1: {
-            static const char *names[] = { "enum",  nullptr };
-            return names;
-        }
         default: return nullptr;
     }
 }
 
-const char *CoAPDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *MQTTDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -484,16 +428,13 @@ const char *CoAPDescriptor::getFieldProperty(int field, const char *propertyname
     }
     switch (field) {
         case 0:
-            if (!strcmp(propertyname,"enum")) return "packetType";
-            return nullptr;
-        case 1:
-            if (!strcmp(propertyname,"enum")) return "packetCode";
+            if (!strcmp(propertyname,"enum")) return "controlType";
             return nullptr;
         default: return nullptr;
     }
 }
 
-int CoAPDescriptor::getFieldArraySize(void *object, int field) const
+int MQTTDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -501,13 +442,13 @@ int CoAPDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    CoAP *pp = (CoAP *)object; (void)pp;
+    MQTT *pp = (MQTT *)object; (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-const char *CoAPDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *MQTTDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -515,13 +456,13 @@ const char *CoAPDescriptor::getFieldDynamicTypeString(void *object, int field, i
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    CoAP *pp = (CoAP *)object; (void)pp;
+    MQTT *pp = (MQTT *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string CoAPDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string MQTTDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -529,19 +470,16 @@ std::string CoAPDescriptor::getFieldValueAsString(void *object, int field, int i
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    CoAP *pp = (CoAP *)object; (void)pp;
+    MQTT *pp = (MQTT *)object; (void)pp;
     switch (field) {
-        case 0: return enum2string(pp->getType(), "packetType");
-        case 1: return enum2string(pp->getCode(), "packetCode");
-        case 2: return bool2string(pp->getHasToken());
-        case 3: return bool2string(pp->getHasOptions());
-        case 4: return bool2string(pp->getHasPayload());
-        case 5: return oppstring2string(pp->getPayload());
+        case 0: return enum2string(pp->getControlType(), "controlType");
+        case 1: return bool2string(pp->getHasVariableHeader());
+        case 2: return bool2string(pp->getHasPayload());
         default: return "";
     }
 }
 
-bool CoAPDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool MQTTDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -549,19 +487,16 @@ bool CoAPDescriptor::setFieldValueAsString(void *object, int field, int i, const
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    CoAP *pp = (CoAP *)object; (void)pp;
+    MQTT *pp = (MQTT *)object; (void)pp;
     switch (field) {
-        case 0: pp->setType((packetType)string2enum(value, "packetType")); return true;
-        case 1: pp->setCode((packetCode)string2enum(value, "packetCode")); return true;
-        case 2: pp->setHasToken(string2bool(value)); return true;
-        case 3: pp->setHasOptions(string2bool(value)); return true;
-        case 4: pp->setHasPayload(string2bool(value)); return true;
-        case 5: pp->setPayload((value)); return true;
+        case 0: pp->setControlType((controlType)string2enum(value, "controlType")); return true;
+        case 1: pp->setHasVariableHeader(string2bool(value)); return true;
+        case 2: pp->setHasPayload(string2bool(value)); return true;
         default: return false;
     }
 }
 
-const char *CoAPDescriptor::getFieldStructName(int field) const
+const char *MQTTDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -574,7 +509,7 @@ const char *CoAPDescriptor::getFieldStructName(int field) const
     };
 }
 
-void *CoAPDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *MQTTDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -582,7 +517,7 @@ void *CoAPDescriptor::getFieldStructValuePointer(void *object, int field, int i)
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    CoAP *pp = (CoAP *)object; (void)pp;
+    MQTT *pp = (MQTT *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }

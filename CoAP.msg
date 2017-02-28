@@ -1,3 +1,7 @@
+cplusplus {{
+	#include "IoTPacket_m.h"
+}};
+
 enum packetType
 {
     CONFIRMABLE = 0;
@@ -14,17 +18,16 @@ enum packetCode
     SERVER_ERROR = 5;
 };
 
-packet CoAP extends cPacket
+packet IoTPacket;
+
+packet CoAP extends IoTPacket
 {
-    int srcAddress;
-    int destAddress;
 	int type @enum(packetType);
 	int code @enum(packetCode);
 	bool hasToken;
 	bool hasOptions;
 	bool hasPayload;
 	string payload;
-	int packetSize;
 };
 
 

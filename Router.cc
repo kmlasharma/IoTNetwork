@@ -130,15 +130,22 @@ void Router::handleMessage(cMessage *msg)
         }
     } else { // forward packet on (will have to encapsulate it)
         std::cout << "\nNo packet aggregation.";
+        inet::UDPPacket *udpPacket = new inet::UDPPacket("Unaggregated");
         if (strcmp(msg->getClassName(), "CoAP") == 0) {
             CoAP *pkt = check_and_cast<CoAP *>(msg);
-            send(pkt, "out");
+            udpPacket->setByteLength(pkt->getPacketSize());
+            udpPacket->encapsulate(pkt);
+            send(udpPacket, "out");
         } else if (strcmp(msg->getClassName(), "inet::UDPPacket") == 0) {
             inet::UDPPacket *pkt = check_and_cast<inet::UDPPacket *>(msg);
-            send(pkt, "out");
+            udpPacket->setByteLength(pkt->getTotalLengthField());
+            udpPacket->encapsulate(pkt);
+            send(udpPacket, "out");
         } else if (strcmp(msg->getClassName(), "MQTT") == 0) {
             MQTT *pkt = check_and_cast<MQTT *>(msg);
-            send(pkt, "out");
+            udpPacket->setByteLength(pkt->getPacketSize());
+            udpPacket->encapsulate(pkt);
+            send(udpPacket, "out");
         }
     }
 }

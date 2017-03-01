@@ -60,11 +60,13 @@ void IoTClient::sendPacket()
         std::cout << "\nGenerating a CoAP packet";
         CoAP *packet = setUpCoAPPacket();
         udpPacket->setByteLength(packet->getPacketSize());
+        udpPacket->setDestinationPort(packet->getDestAddress());
         udpPacket->encapsulate(packet);
     } else {
         std::cout << "\nGenerating a MQTT packet";
         MQTT *packet = setUpMQTTPacket();
         udpPacket->setByteLength(packet->getPacketSize());
+        udpPacket->setDestinationPort(packet->getDestAddress());
         udpPacket->encapsulate(packet);
     }
     send(udpPacket, "out");

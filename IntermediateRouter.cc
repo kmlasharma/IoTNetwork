@@ -4,8 +4,6 @@
 #include "AggregatedPacket_m.h"
 #include "MQTT_m.h"
 #include "IoTPacket_m.h"
-#include "inet/transportlayer/udp/UDPPacket.h"
-#include "inet/transportlayer/udp/UDP.h"
 
 using namespace omnetpp;
 
@@ -15,7 +13,8 @@ using namespace omnetpp;
  */
 class IntermediateRouter : public cSimpleModule
 {
-
+private:
+    int myAddress;
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
@@ -25,45 +24,55 @@ Define_Module(IntermediateRouter);
 
 void IntermediateRouter::initialize()
 {
+    myAddress = par("myAddress");
+    std::cout << "\nINTEMEDIATE HOST ADDR: " << myAddress;
     std::cout << "\nIntermediate Router initialised";
 }
 
 void IntermediateRouter::handleMessage(cMessage *msg)
 {
-    inet::UDPPacket *udpPacket;
-    if (strcmp(msg->getClassName(), "inet::UDPPacket") == 0) {
-        cPacket *cappPkt = check_and_cast<cPacket *>(msg);
-        cPacket *decapPacket = cappPkt->decapsulate();
+    if (msg->isSelfMessage()) {
+        if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
+            AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
+            int dest = agpacket->getDestAddress();
+            send(agpacket, "out", dest);
 
-        if (strcmp(decapPacket->getClassName(), "AggregatedPacket") == 0) {
-            AggregatedPacket *agpkt = check_and_cast<AggregatedPacket *>(decapPacket);
-            int dest = agpkt->getDestAddress();
+        } else if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0){
+            IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
+            int dest = iotPacket->getDestAddress();
+            send(iotPacket, "out", dest);
 
-            udpPacket = new inet::UDPPacket("UDP_AggregatedPacket");
-            udpPacket->setByteLength(agpkt->getPacketSize());
-            udpPacket->encapsulate(agpkt);
-            send(udpPacket, "out", dest);
-        } else if(strcmp(msg->getClassName(), "MQTT") == 0) {
-            MQTT *pkt = check_and_cast<MQTT *>(msg);
-            int dest = pkt->getDestAddress();
-
-            udpPacket = new inet::UDPPacket("UDP_MQTT");
-            udpPacket->setByteLength(pkt->getPacketSize());
-            udpPacket->encapsulate(pkt);
-            send(udpPacket, "out", dest);
-        } else if(strcmp(msg->getClassName(), "CoAP") == 0) {
-            CoAP *pkt = check_and_cast<CoAP *>(msg);
-            int dest = pkt->getDestAddress();
-
-            udpPacket = new inet::UDPPacket("UDP_CoAP");
-            udpPacket->setByteLength(pkt->getPacketSize());
-            udpPacket->encapsulate(pkt);
-            send(udpPacket, "out", dest);
         }
+    } else {
+        if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
+            AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
+            int dest = agpacket->getDestAddress();
+            cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+            simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
+            if (txFinishTime <= simTime()) {
+                // channel free; send out packet immediately
+                send(agpacket, "out", dest);
+            }
+            else {
+                scheduleAt(txFinishTime, agpacket);
+            }
 
+        } else if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0){
+            IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
+            int dest = iotPacket->getDestAddress();
 
-
+            cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+            simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
+            if (txFinishTime <= simTime()) {
+                // channel free; send out packet immediately
+                send(iotPacket, "out", dest);
+            }
+            else {
+                scheduleAt(txFinishTime, iotPacket);
+            }
+        }
     }
+
 
 }
 

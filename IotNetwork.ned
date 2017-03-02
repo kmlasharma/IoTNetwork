@@ -6,6 +6,7 @@ network IoTNetwork
         int numServers = 2;
         int numRouters;
         int numIntermediateRouters;
+        bool doAgg;
     types:
         channel C extends ned.DatarateChannel {
                datarate = 100Mbps;
@@ -13,6 +14,7 @@ network IoTNetwork
     submodules:
         Server[numServers]: Server {
             parameters:
+                myAddress = index;
                 @display("p=539,145,col");
             gates:
                 in[numIntermediateRouters];
@@ -20,6 +22,7 @@ network IoTNetwork
 
         IntermediateRouter[numIntermediateRouters]: IntermediateRouter {
             parameters:
+                myAddress = index+numServers;
                 @display("p=359,145,col");
             gates:
                 in[numRouters/2];
@@ -28,19 +31,23 @@ network IoTNetwork
 
         Router[numRouters]: Router {
             parameters:
+                myAddress = index+numServers+numIntermediateRouters;
                 @display("p=137,152,col");
+				performAggregation = doAgg;
             gates:
                 in[12/numRouters];
         }
 
         IoTClient[12]: IoTClient {
             parameters:
-                hostAddr = 2+index;
+                myAddress = index+numServers+numIntermediateRouters+numRouters;
 //                protocols = "CoAP,MQTT";
 //                delimiter = ",";
 //                numProtocols = 2;
                 @display("p=48,97,col");
         }
+        
+        
 
     connections: //0th gate for forward connections to upper hierarchy
         Server[0].in[i] <-- C <-- IntermediateRouter[i].out[0] for i=0..numIntermediateRouters-1;

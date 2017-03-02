@@ -27,6 +27,7 @@ packet MQTT extends IoTPacket
 	int controlType @enum(controlType);
 	bool hasVariableHeader;
 	bool hasPayload;
+	transportLayerProtocol = "TCP";
 };
 
 

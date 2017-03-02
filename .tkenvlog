@@ -1,0 +1,114 @@
+---- 20170302-17:09:02 ---------------------------------------------------------
+
+
+Tcl error: tkutil.cc#524: unknown option "0 0 0 0"
+  while directly invoking Tcl command proc at 1
+  with args:  'dummy' 'create' 'group' '0 0 0 0' '-matrix' '{1 0} {0 1} {0 0}' '-tags' 'fig f1 ptr0x7fc32c700ea0'
+
+
+
+Tcl error: tkutil.cc#524: unknown option "0 0 0 0"unknown option "0 0 0 0"
+  while directly invoking Tcl command proc at 1
+  with args:  'dummy' 'create' 'group' '0 0 0 0' '-matrix' '{1 0} {0 1} {0 0}' '-tags' 'fig f2 ptr0x7fc32c700f80'
+
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: tkutil.cc#524: unknown option "0 0 0 0"
+  while directly invoking Tcl command proc at 1
+  with args:  'dummy' 'create' 'group' '0 0 0 0' '-matrix' '{0.591716 0} {0 0.591716} {0 0}' '-tags' 'fig f1 ptr0x7fc32c700ea0'
+
+
+
+Tcl error: tkutil.cc#524: unknown option "0 0 0 0"unknown option "0 0 0 0"
+  while directly invoking Tcl command proc at 1
+  with args:  'dummy' 'create' 'group' '0 0 0 0' '-matrix' '{0.591716 0} {0 0.591716} {0 0}' '-tags' 'fig f2 ptr0x7fc32c700f80'
+
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: tkutil.cc#524: unknown option "0 0 0 0"
+  while directly invoking Tcl command proc at 1
+  with args:  'dummy' 'create' 'group' '0 0 0 0' '-matrix' '{0.591716 0} {0 0.591716} {0 0}' '-tags' 'fig f1 ptr0x7fc32c700ea0'
+
+
+
+Tcl error: tkutil.cc#524: unknown option "0 0 0 0"unknown option "0 0 0 0"
+  while directly invoking Tcl command proc at 1
+  with args:  'dummy' 'create' 'group' '0 0 0 0' '-matrix' '{0.591716 0} {0 0.591716} {0 0}' '-tags' 'fig f2 ptr0x7fc32c700f80'
+
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+
+Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
+    while executing
+".network.c raise submodext f2"
+
+

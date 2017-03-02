@@ -208,6 +208,7 @@ void IoTPacket::copy(const IoTPacket& other)
     this->srcAddress = other.srcAddress;
     this->destAddress = other.destAddress;
     this->packetSize = other.packetSize;
+    this->transportLayerProtocol = other.transportLayerProtocol;
 }
 
 void IoTPacket::parsimPack(omnetpp::cCommBuffer *b) const
@@ -216,6 +217,7 @@ void IoTPacket::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->srcAddress);
     doParsimPacking(b,this->destAddress);
     doParsimPacking(b,this->packetSize);
+    doParsimPacking(b,this->transportLayerProtocol);
 }
 
 void IoTPacket::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -224,6 +226,7 @@ void IoTPacket::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->srcAddress);
     doParsimUnpacking(b,this->destAddress);
     doParsimUnpacking(b,this->packetSize);
+    doParsimUnpacking(b,this->transportLayerProtocol);
 }
 
 int IoTPacket::getSrcAddress() const
@@ -254,6 +257,16 @@ int IoTPacket::getPacketSize() const
 void IoTPacket::setPacketSize(int packetSize)
 {
     this->packetSize = packetSize;
+}
+
+const char * IoTPacket::getTransportLayerProtocol() const
+{
+    return this->transportLayerProtocol.c_str();
+}
+
+void IoTPacket::setTransportLayerProtocol(const char * transportLayerProtocol)
+{
+    this->transportLayerProtocol = transportLayerProtocol;
 }
 
 class IoTPacketDescriptor : public omnetpp::cClassDescriptor
@@ -321,7 +334,7 @@ const char *IoTPacketDescriptor::getProperty(const char *propertyname) const
 int IoTPacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 3+basedesc->getFieldCount() : 3;
+    return basedesc ? 4+basedesc->getFieldCount() : 4;
 }
 
 unsigned int IoTPacketDescriptor::getFieldTypeFlags(int field) const
@@ -336,8 +349,9 @@ unsigned int IoTPacketDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,
         FD_ISEDITABLE,
         FD_ISEDITABLE,
+        FD_ISEDITABLE,
     };
-    return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<4) ? fieldTypeFlags[field] : 0;
 }
 
 const char *IoTPacketDescriptor::getFieldName(int field) const
@@ -352,8 +366,9 @@ const char *IoTPacketDescriptor::getFieldName(int field) const
         "srcAddress",
         "destAddress",
         "packetSize",
+        "transportLayerProtocol",
     };
-    return (field>=0 && field<3) ? fieldNames[field] : nullptr;
+    return (field>=0 && field<4) ? fieldNames[field] : nullptr;
 }
 
 int IoTPacketDescriptor::findField(const char *fieldName) const
@@ -363,6 +378,7 @@ int IoTPacketDescriptor::findField(const char *fieldName) const
     if (fieldName[0]=='s' && strcmp(fieldName, "srcAddress")==0) return base+0;
     if (fieldName[0]=='d' && strcmp(fieldName, "destAddress")==0) return base+1;
     if (fieldName[0]=='p' && strcmp(fieldName, "packetSize")==0) return base+2;
+    if (fieldName[0]=='t' && strcmp(fieldName, "transportLayerProtocol")==0) return base+3;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -378,8 +394,9 @@ const char *IoTPacketDescriptor::getFieldTypeString(int field) const
         "int",
         "int",
         "int",
+        "string",
     };
-    return (field>=0 && field<3) ? fieldTypeStrings[field] : nullptr;
+    return (field>=0 && field<4) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **IoTPacketDescriptor::getFieldPropertyNames(int field) const
@@ -449,6 +466,7 @@ std::string IoTPacketDescriptor::getFieldValueAsString(void *object, int field, 
         case 0: return long2string(pp->getSrcAddress());
         case 1: return long2string(pp->getDestAddress());
         case 2: return long2string(pp->getPacketSize());
+        case 3: return oppstring2string(pp->getTransportLayerProtocol());
         default: return "";
     }
 }
@@ -466,6 +484,7 @@ bool IoTPacketDescriptor::setFieldValueAsString(void *object, int field, int i, 
         case 0: pp->setSrcAddress(string2long(value)); return true;
         case 1: pp->setDestAddress(string2long(value)); return true;
         case 2: pp->setPacketSize(string2long(value)); return true;
+        case 3: pp->setTransportLayerProtocol((value)); return true;
         default: return false;
     }
 }

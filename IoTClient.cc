@@ -2,8 +2,6 @@
 #include <omnetpp.h>
 #include "CoAP_m.h"
 #include "MQTT_m.h"
-#include "inet/transportlayer/udp/UDPPacket.h"
-#include "inet/transportlayer/udp/UDP.h"
 using namespace omnetpp;
 
 class IoTClient : public cSimpleModule
@@ -11,7 +9,7 @@ class IoTClient : public cSimpleModule
 //    std::string protocols[] = {"CoAP", "MQTT"};
     int numProtocols = 2;
 private:
-    int hostAddr;
+    int myAddress;
     //all below measurements in bytes
     const int COAP_HEADER_SIZE = 4;
     const int MAX_COAP_TOKEN_SIZE = 8;
@@ -36,9 +34,11 @@ Define_Module(IoTClient);
 
 void IoTClient::initialize()
 {
-    hostAddr = par("hostAddr");
+    myAddress = par("myAddress");
+    std::cout << "\nCLIENT HOST ADDR: " << myAddress;
     cMessage *timer = new cMessage("timer");
-    scheduleAt(simTime()+par("sendIaTime").doubleValue(), timer);
+//    scheduleAt(simTime()+par("sendIaTime").doubleValue(), timer);
+    scheduleAt(simTime(), new cMessage);
 }
 
 void IoTClient::handleMessage(cMessage *msg)
@@ -55,21 +55,17 @@ void IoTClient::handleMessage(cMessage *msg)
 void IoTClient::sendPacket()
 {
     int num = rand() % numProtocols;
-    inet::UDPPacket *udpPacket = new inet::UDPPacket("udpPacket");
     if (num == 0) {
         std::cout << "\nGenerating a CoAP packet";
         CoAP *packet = setUpCoAPPacket();
-        udpPacket->setByteLength(packet->getPacketSize());
-        udpPacket->setDestinationPort(packet->getDestAddress());
-        udpPacket->encapsulate(packet);
+        std::cout<< "\nIOT CLIENT SENDING TO " << packet->getDestAddress();
+        send(packet, "out");
     } else {
         std::cout << "\nGenerating a MQTT packet";
         MQTT *packet = setUpMQTTPacket();
-        udpPacket->setByteLength(packet->getPacketSize());
-        udpPacket->setDestinationPort(packet->getDestAddress());
-        udpPacket->encapsulate(packet);
+        std::cout<< "\nIOT CLIENT SENDING TO " << packet->getDestAddress();
+        send(packet, "out");
     }
-    send(udpPacket, "out");
 }
 
 void IoTClient::processPacket(cPacket *packet)
@@ -85,7 +81,7 @@ MQTT* IoTClient::setUpMQTTPacket()
     //set addresses
     int serverAddr = rand() % SERVER_CHOICES;
     packet->setDestAddress(serverAddr);
-    packet->setSrcAddress(hostAddr);
+    packet->setSrcAddress(myAddress);
 
     //set control type
     controlType randomType = controlType(rand() % DISCONNECT);
@@ -126,7 +122,7 @@ CoAP* IoTClient::setUpCoAPPacket()
     //set addresses
     int serverAddr = rand() % SERVER_CHOICES;
     packet->setDestAddress(serverAddr);
-    packet->setSrcAddress(hostAddr);
+    packet->setSrcAddress(myAddress);
 
     //generate header contents (type, code)
     packetType randomType = packetType(rand() % RESET);
@@ -154,7 +150,7 @@ CoAP* IoTClient::setUpCoAPPacket()
     }
     if (packet->getHasPayload() == true) {
         packet->setPayload("This is a test payload for a packet");
-        packetSize = packetSize + (rand() % MAX_COAP_PAYLOAD_SIZE + 500);
+        packetSize = packetSize + (rand() % MAX_COAP_PAYLOAD_SIZE + 400);
     }
 
     packet->setPacketSize(packetSize);

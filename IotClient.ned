@@ -2,7 +2,7 @@
 simple IoTClient
 {
     parameters:
-        int hostAddr;
+        int myAddress;
         volatile double sendIaTime @unit(s);
     gates:
         output out;

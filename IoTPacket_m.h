@@ -26,6 +26,7 @@
  *     int srcAddress;
  *     int destAddress;
  *     int packetSize;
+ *     string transportLayerProtocol;
  * }
  * </pre>
  */
@@ -35,6 +36,7 @@ class IoTPacket : public ::omnetpp::cPacket
     int srcAddress;
     int destAddress;
     int packetSize;
+    ::omnetpp::opp_string transportLayerProtocol;
 
   private:
     void copy(const IoTPacket& other);
@@ -59,6 +61,8 @@ class IoTPacket : public ::omnetpp::cPacket
     virtual void setDestAddress(int destAddress);
     virtual int getPacketSize() const;
     virtual void setPacketSize(int packetSize);
+    virtual const char * getTransportLayerProtocol() const;
+    virtual void setTransportLayerProtocol(const char * transportLayerProtocol);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const IoTPacket& obj) {obj.parsimPack(b);}

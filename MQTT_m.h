@@ -70,6 +70,7 @@ enum controlType {
  *     int controlType \@enum(controlType);
  *     bool hasVariableHeader;
  *     bool hasPayload;
+ *     transportLayerProtocol = "TCP";
  * }
  * </pre>
  */

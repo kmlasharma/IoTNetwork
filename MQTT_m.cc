@@ -200,6 +200,8 @@ Register_Class(MQTT)
 
 MQTT::MQTT(const char *name, short kind) : ::IoTPacket(name,kind)
 {
+    this->setTransportLayerProtocol("TCP");
+
     this->controlType = 0;
     this->hasVariableHeader = false;
     this->hasPayload = false;

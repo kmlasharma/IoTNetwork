@@ -6,8 +6,6 @@
 #include "IoTPacket_m.h"
 #include "MQTT_m.h"
 #include "AggregatedPacket_m.h"
-#include "inet/transportlayer/udp/UDPPacket.h"
-#include "inet/transportlayer/udp/UDP.h"
 
 using namespace omnetpp;
 
@@ -16,7 +14,9 @@ class Router : public cSimpleModule
     std::unordered_map<int, AggregatedPacket *> destinationAndPacket_UDP;
     std::unordered_map<int, AggregatedPacket *> destinationAndPacket_TCP;
     std::string COAP = "CoAP";
-    bool performAggregation = true;
+private:
+    bool performAggregation;
+    int myAddress;
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
@@ -29,25 +29,28 @@ Define_Module(Router);
 
 void Router::initialize()
 {
-    std::cout << "Router initialized";
+    std::cout << "\nRouter initialized";
+    performAggregation = par("performAggregation");
+    myAddress = par("myAddress");
+    std::cout << "\nROUTER HOST ADDR: " << myAddress;
+    std::cout << "\nAggregate: " << performAggregation;
 }
 
 void Router::handleMessage(cMessage *msg)
 {
-    cPacket *decapPacket;
     std::string protocol;
     std::string transportLayerProtocol;
-    //convert to transport layer packet
-    if (strcmp(msg->getClassName(),"inet::UDPPacket") == 0) {
-        cPacket *cappPkt = check_and_cast<cPacket *>(msg);
-        decapPacket = cappPkt->decapsulate();
-        transportLayerProtocol = "UDP";
+    if (msg->isSelfMessage()) {
+        send(msg, "out");
     }
-    IoTPacket *iotPacket = check_and_cast<IoTPacket *>(decapPacket);
+
+    IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
     if (strcmp(iotPacket->getClassName(), "CoAP") == 0) {
         protocol = "CoAP";
+        transportLayerProtocol = iotPacket->getTransportLayerProtocol();
     } else if (strcmp(iotPacket->getClassName(), "MQTT") == 0){
         protocol = "MQTT";
+        transportLayerProtocol = iotPacket->getTransportLayerProtocol();
     }
 
     // determine destination address
@@ -70,103 +73,45 @@ void Router::handleMessage(cMessage *msg)
             if (aggrPktSize + currentPacketSize >= agpacket->getMaxSize()) {
                 //send off buffer packet (will have to encapsulate it in udp)
                 if (transportLayerProtocol == "UDP") {
-                    inet::UDPPacket *udpPacket = new inet::UDPPacket("udpAggregatedPacket");
-                    udpPacket->setByteLength(agpacket->getPacketSize());
-                    udpPacket->encapsulate(agpacket);
-                    send(udpPacket, "out");
+                    send(agpacket, "out");
                     destinationAndPacket_UDP.erase(destination);
                     //send off single packet
-                    if (protocol == "CoAP") {
-                        CoAP *packet = check_and_cast<CoAP *>(iotPacket);
-                        inet::UDPPacket *udpPacket = new inet::UDPPacket("udpSingleCoAPPacket");
-                        udpPacket->setByteLength(packet->getPacketSize());
-                        udpPacket->encapsulate(packet);
-                        cChannel *txChannel = gate("out")->getTransmissionChannel();
-                        simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
-                        if (txFinishTime <= simTime()) {
-                            // channel free; send out packet immediately
-                            send(udpPacket, "out");
-                        }
-                        else {
-                            scheduleAt(txFinishTime, udpPacket);
-                        }
+                    cChannel *txChannel = gate("out")->getTransmissionChannel();
+                    simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
+                    if (txFinishTime <= simTime()) {
+                        // channel free; send out packet immediately
+                        send(iotPacket, "out");
                     }
-                    else if (protocol == "MQTT") { //MOVE THIS OUT TO TCP!!!!!!!!!!!!!!!!
-                        MQTT *packet = check_and_cast<MQTT *>(iotPacket);
-                        inet::UDPPacket *udpPacket = new inet::UDPPacket("udpSingleMQTTPacket");
-                        udpPacket->setByteLength(packet->getPacketSize());
-                        udpPacket->encapsulate(packet);
-                        cChannel *txChannel = gate("out")->getTransmissionChannel();
-                        simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
-                        if (txFinishTime <= simTime()) {
-                            // channel free; send out packet immediately
-                            send(udpPacket, "out");
-                        }
-                        else {
-                            scheduleAt(txFinishTime, udpPacket);
-                        }
+                    else {
+                        scheduleAt(txFinishTime, iotPacket);
                     }
                 }
 
             } else {
                 //add it to to buffer
                 std::vector<IoTPacket *> listOfPackets = agpacket->getListOfPackets();
+                int newAggregatedPacketSize = aggrPktSize + currentPacketSize;
                 if (transportLayerProtocol == "UDP") {
-                    if (protocol == "CoAP") {
-                        CoAP *packet = check_and_cast<CoAP *>(iotPacket);
-                        agpacket->setPacketSize(aggrPktSize + packet->getPacketSize());
-                        std::cout << "\nJust added a packet of length " << packet->getPacketSize() << " to the buffer!";
-                        listOfPackets.push_back(packet);
-                    } else if (protocol == "MQTT") {
-                        MQTT *packet = check_and_cast<MQTT *>(iotPacket);
-                        agpacket->setPacketSize(aggrPktSize + packet->getPacketSize());
-                        std::cout << "\nJust added a packet of length " << packet->getPacketSize() << " to the buffer!";
-                        listOfPackets.push_back(packet);
-                    }
+                    agpacket->setPacketSize(newAggregatedPacketSize);
+                    agpacket->setByteLength(newAggregatedPacketSize);
+                    std::cout << "\nJust added a packet of length " << iotPacket->getPacketSize() << " to the buffer!";
+                    listOfPackets.push_back(iotPacket);
                 }
                 agpacket->setListOfPackets(listOfPackets);
                 viewHashtable();
             }
         }
-    } else { // forward packet on (will have to encapsulate it)
+    } else { // forward packet on
         std::cout << "\nNo packet aggregation.";
-        inet::UDPPacket *udpPacket = new inet::UDPPacket("Unaggregated");
-        if (strcmp(msg->getClassName(), "CoAP") == 0) {
-            CoAP *pkt = check_and_cast<CoAP *>(msg);
-            udpPacket->setByteLength(pkt->getPacketSize());
-            udpPacket->encapsulate(pkt);
-            send(udpPacket, "out");
-        } else if (strcmp(msg->getClassName(), "inet::UDPPacket") == 0) {
-            inet::UDPPacket *pkt = check_and_cast<inet::UDPPacket *>(msg);
-            udpPacket->setByteLength(pkt->getTotalLengthField());
-            udpPacket->encapsulate(pkt);
-            send(udpPacket, "out");
-        } else if (strcmp(msg->getClassName(), "MQTT") == 0) {
-            MQTT *pkt = check_and_cast<MQTT *>(msg);
-            udpPacket->setByteLength(pkt->getPacketSize());
-            udpPacket->encapsulate(pkt);
-            send(udpPacket, "out");
-        }
+        send(iotPacket, "out");
     }
 }
 
 void Router::initNewAggregatedPacket(IoTPacket *iotPkt, std::string protocol, int destination, std::string transportLayerProtocol) {
     AggregatedPacket *agpacket = new AggregatedPacket();
     std::vector<IoTPacket *> listOfPackets;
-    int currentPacketSize;
-    if (transportLayerProtocol == "UDP") {
-        if (protocol == COAP) {
-            CoAP *packet = check_and_cast<CoAP *>(iotPkt);
-            listOfPackets = {packet};
-            currentPacketSize = packet->getPacketSize();
-        }
-    } else if (transportLayerProtocol == "TCP") {
-        if (protocol == "MQTT") {
-            MQTT *packet = check_and_cast<MQTT *>(iotPkt);
-            listOfPackets = {packet};
-            currentPacketSize = packet->getPacketSize();
-        }
-    }
+    int currentPacketSize = iotPkt->getPacketSize();
+    listOfPackets = {iotPkt};
     agpacket->setPacketSize(currentPacketSize);
     agpacket->setListOfPackets(listOfPackets);
     agpacket->setDestAddress(destination);

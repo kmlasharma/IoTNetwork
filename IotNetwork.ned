@@ -32,8 +32,8 @@ network IoTNetwork
         Router[numRouters]: Router {
             parameters:
                 myAddress = index+numServers+numIntermediateRouters;
-                @display("p=137,152,col");
 				performAggregation = doAgg;
+                @display("p=137,152,col");
             gates:
                 in[12/numRouters];
         }
@@ -41,9 +41,6 @@ network IoTNetwork
         IoTClient[12]: IoTClient {
             parameters:
                 myAddress = index+numServers+numIntermediateRouters+numRouters;
-//                protocols = "CoAP,MQTT";
-//                delimiter = ",";
-//                numProtocols = 2;
                 @display("p=48,97,col");
         }
         

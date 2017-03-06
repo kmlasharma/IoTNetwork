@@ -112,3 +112,28 @@ Tcl error: moduleinspector.cc#244: tagOrId "f2" doesn't match any items
 ".network.c raise submodext f2"
 
 
+---- 20170305-19:30:22 ---------------------------------------------------------
+
+
+Tcl error: moduleinspector.cc#670: ptr0x7fe73e861350 not found
+    while executing
+"error "$tag not found""
+    (procedure "ModuleInspector:getSubmodCoords" line 4)
+    invoked from within
+"ModuleInspector:getSubmodCoords $c $modptr"
+    (procedure "ModuleInspector:drawNextEventMarker" line 2)
+    invoked from within
+"ModuleInspector:drawNextEventMarker .network.c ptr0x7fe73e861350 2"
+
+
+Tcl error: moduleinspector.cc#670: ptr0x7fe73e861350 not found
+    while executing
+"error "$tag not found""
+    (procedure "ModuleInspector:getSubmodCoords" line 4)
+    invoked from within
+"ModuleInspector:getSubmodCoords $c $modptr"
+    (procedure "ModuleInspector:drawNextEventMarker" line 2)
+    invoked from within
+"ModuleInspector:drawNextEventMarker .network.c ptr0x7fe73e861350 2"
+
+

@@ -4,6 +4,7 @@
 #include "AggregatedPacket_m.h"
 #include "MQTT_m.h"
 #include "IoTPacket_m.h"
+#include "LogGenerator.h"
 
 using namespace omnetpp;
 
@@ -13,6 +14,7 @@ using namespace omnetpp;
  */
 class IntermediateRouter : public cSimpleModule
 {
+    int attemptsMediumAccess = 0;
 private:
     int myAddress;
 protected:
@@ -35,18 +37,19 @@ void IntermediateRouter::handleMessage(cMessage *msg)
         if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
             AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
             int dest = agpacket->getDestAddress();
-            send(agpacket, "out", dest);
+            send(agpacket->dup(), "out", dest);
 
         } else if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0){
             IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
             int dest = iotPacket->getDestAddress();
-            send(iotPacket, "out", dest);
+            send(iotPacket->dup(), "out", dest);
 
         }
     } else {
         if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
             AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
             int dest = agpacket->getDestAddress();
+            attemptsMediumAccess++;
             cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
             simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
             if (txFinishTime <= simTime()) {
@@ -60,7 +63,7 @@ void IntermediateRouter::handleMessage(cMessage *msg)
         } else if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0){
             IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
             int dest = iotPacket->getDestAddress();
-
+            attemptsMediumAccess++;
             cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
             simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
             if (txFinishTime <= simTime()) {
@@ -72,7 +75,7 @@ void IntermediateRouter::handleMessage(cMessage *msg)
             }
         }
     }
-
+    LogGenerator::recordAttemptsMediumAccess(1, attemptsMediumAccess);
 
 }
 

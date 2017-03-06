@@ -32,6 +32,7 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 OBJS = \
     $O/IntermediateRouter.o \
     $O/IoTClient.o \
+    $O/LogGenerator.o \
     $O/Router.o \
     $O/Server.o \
     $O/AggregatedPacket_m.o \
@@ -131,6 +132,7 @@ clean:
 	$(Q)-rm -rf $O
 	$(Q)-rm -f IoTNetwork IoTNetwork.exe libIoTNetwork.so libIoTNetwork.a libIoTNetwork.dll libIoTNetwork.dylib
 	$(Q)-rm -f ./*_m.cc ./*_m.h ./*_sm.cc ./*_sm.h
+	$(Q)-rm -f Logs/*_m.cc Logs/*_m.h Logs/*_sm.cc Logs/*_sm.h
 
 cleanall: clean
 	$(Q)-rm -rf $(PROJECT_OUTPUT_DIR)

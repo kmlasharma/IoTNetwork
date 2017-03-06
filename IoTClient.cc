@@ -2,6 +2,7 @@
 #include <omnetpp.h>
 #include "CoAP_m.h"
 #include "MQTT_m.h"
+#include "LogGenerator.h"
 using namespace omnetpp;
 
 class IoTClient : public cSimpleModule
@@ -36,9 +37,7 @@ void IoTClient::initialize()
 {
     myAddress = par("myAddress");
     std::cout << "\nCLIENT HOST ADDR: " << myAddress;
-    cMessage *timer = new cMessage("timer");
-//    scheduleAt(simTime()+par("sendIaTime").doubleValue(), timer);
-    scheduleAt(simTime(), new cMessage);
+    scheduleAt(simTime()+par("sendIaTime").doubleValue(), new cMessage);
 }
 
 void IoTClient::handleMessage(cMessage *msg)

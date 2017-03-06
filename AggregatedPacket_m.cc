@@ -209,6 +209,7 @@ void AggregatedPacket::copy(const AggregatedPacket& other)
     this->packetSize = other.packetSize;
     this->maxSize = other.maxSize;
     this->listOfPackets = other.listOfPackets;
+    this->transportLayer = other.transportLayer;
 }
 
 void AggregatedPacket::parsimPack(omnetpp::cCommBuffer *b) const
@@ -218,6 +219,7 @@ void AggregatedPacket::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->packetSize);
     doParsimPacking(b,this->maxSize);
     doParsimPacking(b,this->listOfPackets);
+    doParsimPacking(b,this->transportLayer);
 }
 
 void AggregatedPacket::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -227,6 +229,7 @@ void AggregatedPacket::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->packetSize);
     doParsimUnpacking(b,this->maxSize);
     doParsimUnpacking(b,this->listOfPackets);
+    doParsimUnpacking(b,this->transportLayer);
 }
 
 int AggregatedPacket::getDestAddress() const
@@ -267,6 +270,16 @@ ListOfPackets& AggregatedPacket::getListOfPackets()
 void AggregatedPacket::setListOfPackets(const ListOfPackets& listOfPackets)
 {
     this->listOfPackets = listOfPackets;
+}
+
+const char * AggregatedPacket::getTransportLayer() const
+{
+    return this->transportLayer.c_str();
+}
+
+void AggregatedPacket::setTransportLayer(const char * transportLayer)
+{
+    this->transportLayer = transportLayer;
 }
 
 class AggregatedPacketDescriptor : public omnetpp::cClassDescriptor
@@ -334,7 +347,7 @@ const char *AggregatedPacketDescriptor::getProperty(const char *propertyname) co
 int AggregatedPacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 4+basedesc->getFieldCount() : 4;
+    return basedesc ? 5+basedesc->getFieldCount() : 5;
 }
 
 unsigned int AggregatedPacketDescriptor::getFieldTypeFlags(int field) const
@@ -350,8 +363,9 @@ unsigned int AggregatedPacketDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,
         FD_ISEDITABLE,
         FD_ISCOMPOUND,
+        FD_ISEDITABLE,
     };
-    return (field>=0 && field<4) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<5) ? fieldTypeFlags[field] : 0;
 }
 
 const char *AggregatedPacketDescriptor::getFieldName(int field) const
@@ -367,8 +381,9 @@ const char *AggregatedPacketDescriptor::getFieldName(int field) const
         "packetSize",
         "maxSize",
         "listOfPackets",
+        "transportLayer",
     };
-    return (field>=0 && field<4) ? fieldNames[field] : nullptr;
+    return (field>=0 && field<5) ? fieldNames[field] : nullptr;
 }
 
 int AggregatedPacketDescriptor::findField(const char *fieldName) const
@@ -379,6 +394,7 @@ int AggregatedPacketDescriptor::findField(const char *fieldName) const
     if (fieldName[0]=='p' && strcmp(fieldName, "packetSize")==0) return base+1;
     if (fieldName[0]=='m' && strcmp(fieldName, "maxSize")==0) return base+2;
     if (fieldName[0]=='l' && strcmp(fieldName, "listOfPackets")==0) return base+3;
+    if (fieldName[0]=='t' && strcmp(fieldName, "transportLayer")==0) return base+4;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -395,8 +411,9 @@ const char *AggregatedPacketDescriptor::getFieldTypeString(int field) const
         "int",
         "int",
         "ListOfPackets",
+        "string",
     };
-    return (field>=0 && field<4) ? fieldTypeStrings[field] : nullptr;
+    return (field>=0 && field<5) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **AggregatedPacketDescriptor::getFieldPropertyNames(int field) const
@@ -467,6 +484,7 @@ std::string AggregatedPacketDescriptor::getFieldValueAsString(void *object, int 
         case 1: return long2string(pp->getPacketSize());
         case 2: return long2string(pp->getMaxSize());
         case 3: {std::stringstream out; out << pp->getListOfPackets(); return out.str();}
+        case 4: return oppstring2string(pp->getTransportLayer());
         default: return "";
     }
 }
@@ -484,6 +502,7 @@ bool AggregatedPacketDescriptor::setFieldValueAsString(void *object, int field, 
         case 0: pp->setDestAddress(string2long(value)); return true;
         case 1: pp->setPacketSize(string2long(value)); return true;
         case 2: pp->setMaxSize(string2long(value)); return true;
+        case 4: pp->setTransportLayer((value)); return true;
         default: return false;
     }
 }

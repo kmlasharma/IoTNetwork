@@ -11,17 +11,23 @@ using namespace std;
 
 std::ofstream logfile;
 static bool initialised = false;
+std::string aggregateStr = "Not_Aggregated";
 static const std::string FOLDER_NAME = "./Logs/";
 static const std::string NODE_TYPES[3] = {"ROUTER", "INTERMEDIATE ROUTER", "SERVER"};
 std::unordered_map<int, int> MediumAccessCounts; // node type, medium access count
 std::unordered_map<int, int> PacketDurationAndSize;
+int totalPacketsReceived = 0;
+int totalErrorPackets = 0;
 
 void LogGenerator::init(bool aggregate)
 {
     if (initialised == false) {
         std::time_t result = std::time(0);
         system(("mkdir -p "+ FOLDER_NAME).c_str());
-        std::string fileName = std::string("Logfile_") + std::asctime(std::localtime(&result)) + std::string(".txt");
+        if (aggregate) {
+            aggregateStr = "Aggregated";
+        }
+        std::string fileName = std::string("Logfile_") + aggregateStr + std::asctime(std::localtime(&result)) + std::string(".txt");
         logfile.open(FOLDER_NAME + fileName, std::ios::app);
         logfile << "\nAGGREGATION SET TO: " << aggregate << "\n\n";
         //        logfile.close();
@@ -43,10 +49,10 @@ void LogGenerator::recordAttemptsMediumAccess(int type, int tries)
     logData();
 }
 
-void LogGenerator::recordDurationTime(int size, omnetpp::simtime_t duration) {
+void LogGenerator::recordDurationTime(int size, omnetpp::simtime_t duration, std::string note) {
     std::string line = "";
     logfile << "\n=== PACKET SIZE v DURATION ===";
-    logfile << "\nSize: " << size << ", Duration: " << duration;
+    logfile << "\nSize: " << size << ", Duration: " << duration << ", Note: " << note;
     logfile << "\n============================";
 }
 
@@ -64,9 +70,21 @@ void LogGenerator::logData()
     logfile << "\n============================";
 }
 
-void LogGenerator::recordArrivalTimes(int size, omnetpp::simtime_t arrivalTime) {
+void LogGenerator::recordArrivalTimes(int size, omnetpp::simtime_t arrivalTime, std::string note) {
     std::string line = "";
     logfile << "\n=== PACKET SIZE & ARRIVAL ===";
-    logfile << "\nSize: " << size << ", Arrival Time: " << arrivalTime;
+    logfile << "\nSize: " << size << ", Arrival Time: " << arrivalTime << ", Note: " << note;
+    logfile << "\n===========================";
+    totalPacketsReceived++;
+    logfile << "\nTotal packets received: " << totalPacketsReceived;
+}
+
+void LogGenerator::recordBitError(int size, std::string note) {
+    std::string line = "";
+    totalErrorPackets++;
+    logfile << "\n=== ERROR PACKETS ===";
+    logfile << "\nSize: " << size << ", Note: " << note;
+    logfile << "\nTotal count of error packets: " << totalErrorPackets;
     logfile << "\n===========================";
 }
+

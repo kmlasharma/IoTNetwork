@@ -73,6 +73,8 @@ void IntermediateRouter::handleMessage(cMessage *msg)
             else {
                 scheduleAt(txFinishTime, iotPacket);
             }
+        } else {
+            std::cout << "\nERROR: WAS NOT EITHER COAP MQTT OR AGGREGATED " << msg->getClassName();
         }
     }
     LogGenerator::recordAttemptsMediumAccess(1, attemptsMediumAccess);

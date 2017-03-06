@@ -7,7 +7,7 @@ using namespace omnetpp;
 
 class IoTClient : public cSimpleModule
 {
-//    std::string protocols[] = {"CoAP", "MQTT"};
+    //    std::string protocols[] = {"CoAP", "MQTT"};
     int numProtocols = 2;
 private:
     int myAddress;
@@ -43,8 +43,12 @@ void IoTClient::initialize()
 void IoTClient::handleMessage(cMessage *msg)
 {
     if (msg->isSelfMessage()) {
-        sendPacket();
-        scheduleAt(simTime()+par("sendIaTime").doubleValue(), msg);
+        if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0) {
+            send(msg->dup(), "out");
+        } else {
+            sendPacket();
+            scheduleAt(simTime()+par("sendIaTime").doubleValue(), msg);
+        }
     }
     else {
         processPacket(check_and_cast<cPacket *>(msg));
@@ -58,12 +62,31 @@ void IoTClient::sendPacket()
         std::cout << "\nGenerating a CoAP packet";
         CoAP *packet = setUpCoAPPacket();
         std::cout<< "\nIOT CLIENT SENDING TO " << packet->getDestAddress();
-        send(packet, "out");
+
+        //send off buffer packet
+        cChannel *txChannel = gate("out")->getTransmissionChannel();
+        simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
+        if (txFinishTime <= simTime()) {
+            // channel free; send out packet immediately
+            send(packet, "out");
+        }
+        else { //channel busy
+            scheduleAt(txFinishTime, packet);
+        }
     } else {
         std::cout << "\nGenerating a MQTT packet";
         MQTT *packet = setUpMQTTPacket();
         std::cout<< "\nIOT CLIENT SENDING TO " << packet->getDestAddress();
-        send(packet, "out");
+        //send off buffer packet
+        cChannel *txChannel = gate("out")->getTransmissionChannel();
+        simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
+        if (txFinishTime <= simTime()) {
+            // channel free; send out packet immediately
+            send(packet, "out");
+        }
+        else { //channel busy
+            scheduleAt(txFinishTime, packet);
+        }
     }
 }
 

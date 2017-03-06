@@ -13,4 +13,5 @@ packet AggregatedPacket extends cPacket
     int packetSize;
     int maxSize = 1500;
 	ListOfPackets listOfPackets;
+	string transportLayer;
 }

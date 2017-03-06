@@ -34,18 +34,20 @@ void Server::handleMessage(cMessage *msg)
         std::vector<IoTPacket *> listOfPackets = agpacket->getListOfPackets();
         //disaggregate
         delete agpacket;
-        std::cout << "\nJust deleted a packet";
-        if (listOfPackets.size() > 1) {
+        if (listOfPackets.size() > 0) {
             deconcatenate(listOfPackets);
         }
-        std::cout << "\nIm back out";
     } else if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0) {
+        std::string classname = msg->getClassName();
         IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
         simtime_t durationTime = iotPacket->getDuration();
         int size = iotPacket->getByteLength();
-        LogGenerator::recordDurationTime(size, durationTime);
+        LogGenerator::recordDurationTime(size, durationTime, ("This packet was a " + classname));
         simtime_t arrivalTime = iotPacket->getArrivalTime();
-        LogGenerator::recordArrivalTimes(size, arrivalTime);
+        LogGenerator::recordArrivalTimes(size, arrivalTime, ("This packet was a " + classname));
+        if (iotPacket->hasBitError()) {
+            LogGenerator::recordBitError(size, ("This packet was a " + classname));
+        }
         delete iotPacket;
     }
 }
@@ -56,11 +58,15 @@ void Server::deconcatenate(std::vector<IoTPacket *> listOfPackets)
     std::cout << "\n==================";
     for(std::vector<IoTPacket *>::iterator it = listOfPackets.begin(); it != listOfPackets.end(); ++it) {
         IoTPacket *pkt = *it;
+        std::string classname = pkt->getClassName();
         simtime_t durationTime = pkt->getDuration();
         int size = pkt->getPacketSize();
-        LogGenerator::recordDurationTime(size, durationTime);
+        LogGenerator::recordDurationTime(size, durationTime, ("This packet was a " + classname));
         simtime_t arrivalTime = pkt->getArrivalTime();
-        LogGenerator::recordArrivalTimes(size, arrivalTime);
+        LogGenerator::recordArrivalTimes(size, arrivalTime, ("This packet was a " + classname));
+        if (pkt->hasBitError()) {
+            LogGenerator::recordBitError(size, ("This packet was a " + classname));
+        }
     }
     std::cout << "\n==================";
 

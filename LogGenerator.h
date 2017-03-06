@@ -17,8 +17,9 @@ public:
     static void init(bool aggregate);
     static void recordAttemptsMediumAccess(int type, int tries);
     static void logData();
-    static void recordDurationTime(int size, omnetpp::simtime_t duration);
-    static void recordArrivalTimes(int size, omnetpp::simtime_t arrivalTime);
+    static void recordDurationTime(int size, omnetpp::simtime_t duration, std::string note);
+    static void recordArrivalTimes(int size, omnetpp::simtime_t arrivalTime, std::string note);
+    static void recordBitError(int size, std::string note);
 
     //    static void timeSpentTransmitting(int hostAddr, string type, int tries);
 

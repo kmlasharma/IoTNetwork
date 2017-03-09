@@ -29,7 +29,6 @@
  * packet AggregatedPacket extends cPacket
  * {
  *     int destAddress;
- *     int packetSize;
  *     int maxSize = 1500;
  *     ListOfPackets listOfPackets;
  *     string transportLayer;
@@ -40,7 +39,6 @@ class AggregatedPacket : public ::omnetpp::cPacket
 {
   protected:
     int destAddress;
-    int packetSize;
     int maxSize;
     ListOfPackets listOfPackets;
     ::omnetpp::opp_string transportLayer;
@@ -64,8 +62,6 @@ class AggregatedPacket : public ::omnetpp::cPacket
     // field getter/setter methods
     virtual int getDestAddress() const;
     virtual void setDestAddress(int destAddress);
-    virtual int getPacketSize() const;
-    virtual void setPacketSize(int packetSize);
     virtual int getMaxSize() const;
     virtual void setMaxSize(int maxSize);
     virtual ListOfPackets& getListOfPackets();

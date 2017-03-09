@@ -1,14 +1,24 @@
 
 #include <omnetpp.h>
 #include "CoAP_m.h"
-#include "MQTT_m.h"
 #include "LogGenerator.h"
+#include "inet/linklayer/ethernet/EtherFrame_m.h"
+#include "inet/transportlayer/contract/udp/UDPSocket.h"
+#include "inet/networklayer/common/L3AddressResolver.h"
+#include "inet/networklayer/ipv4/IPv4Datagram_m.h"
+#include "inet/networklayer/contract/ipv4/IPv4Address.h"
+#include "inet/networklayer/configurator/ipv4/IPv4NetworkConfigurator.h"
+
+namespace inet {
+
+class IPv4Datagram;
+
+}
 using namespace omnetpp;
 
 class IoTClient : public cSimpleModule
 {
-    //    std::string protocols[] = {"CoAP", "MQTT"};
-    int numProtocols = 2;
+    inet::UDPSocket socket;
 private:
     int myAddress;
     //all below measurements in bytes
@@ -17,17 +27,14 @@ private:
     const int MAX_COAP_OPTIONS_SIZE = 10;
     const int MAX_COAP_PAYLOAD_SIZE = 1024;
     const int SERVER_CHOICES = 2;
-    const int MAX_MQTT_FIXED_HEADER_SIZE = 1;
-    const int MAX_MQTT_VARIABLE_HEADER_SIZE = 2;
-    const int MAX_MQTT_PAYLOAD_SIZE = 1024; //to be investigated
 
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
     void sendPacket();
     CoAP* setUpCoAPPacket();
-    MQTT* setUpMQTTPacket();
     void processPacket(cPacket *packet);
+    inet::IPv4Datagram_Base* setUpLowerPackets();
 
 };
 
@@ -36,15 +43,20 @@ Define_Module(IoTClient);
 void IoTClient::initialize()
 {
     myAddress = par("myAddress");
+//    IPv4Address myAddress = new IPv4Address(10, 0, 0, 2);
     std::cout << "\nCLIENT HOST ADDR: " << myAddress;
+    socket.setOutputGate(gate("out"));
+    socket.connect(inet::L3AddressResolver().resolve("10.0.0.2"), 2000);
+//    socket.connect(L3AddressResolver().resolve("10.0.0.2"), 2000);
     scheduleAt(simTime()+par("sendIaTime").doubleValue(), new cMessage);
 }
 
 void IoTClient::handleMessage(cMessage *msg)
 {
     if (msg->isSelfMessage()) {
-        if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0) {
-            send(msg->dup(), "out");
+        if (strcmp(msg->getClassName(), "CoAP") == 0) {
+            IoTPacket *pkt = check_and_cast<IoTPacket *>(msg);
+            socket.send(pkt);
         } else {
             sendPacket();
             scheduleAt(simTime()+par("sendIaTime").doubleValue(), msg);
@@ -57,84 +69,29 @@ void IoTClient::handleMessage(cMessage *msg)
 
 void IoTClient::sendPacket()
 {
-    int num = rand() % numProtocols;
-    if (num == 0) {
-        std::cout << "\nGenerating a CoAP packet";
-        CoAP *packet = setUpCoAPPacket();
-        std::cout<< "\nIOT CLIENT SENDING TO " << packet->getDestAddress();
+    std::cout << "\nGenerating a CoAP packet";
+    CoAP *packet = setUpCoAPPacket();
+    inet::IPv4Datagram_Base* encapped = setUpLowerPackets();
+    packet->encapsulate(encapped);
+    std::cout<< "\nIOT CLIENT SENDING TO " << packet->getDestAddress();
 
-        //send off buffer packet
-        cChannel *txChannel = gate("out")->getTransmissionChannel();
-        simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
-        if (txFinishTime <= simTime()) {
-            // channel free; send out packet immediately
-            send(packet, "out");
-        }
-        else { //channel busy
-            scheduleAt(txFinishTime, packet);
-        }
-    } else {
-        std::cout << "\nGenerating a MQTT packet";
-        MQTT *packet = setUpMQTTPacket();
-        std::cout<< "\nIOT CLIENT SENDING TO " << packet->getDestAddress();
-        //send off buffer packet
-        cChannel *txChannel = gate("out")->getTransmissionChannel();
-        simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
-        if (txFinishTime <= simTime()) {
-            // channel free; send out packet immediately
-            send(packet, "out");
-        }
-        else { //channel busy
-            scheduleAt(txFinishTime, packet);
-        }
+    //send off buffer packet
+    LogGenerator::newPacketGenerated();
+    cChannel *txChannel = gate("out")->getTransmissionChannel();
+    simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
+    if (txFinishTime <= simTime()) {
+        // channel free; send out packet immediately
+        std::cout << "SENT COAP";
+        socket.send(packet);
+        std::cout << "FINISHED SENT COAP";
+    } else { //channel busy
+        scheduleAt(txFinishTime, packet);
     }
 }
 
 void IoTClient::processPacket(cPacket *packet)
 {
     delete packet;
-}
-
-MQTT* IoTClient::setUpMQTTPacket()
-{
-    MQTT *packet = new MQTT();
-    int packetSize = MAX_MQTT_FIXED_HEADER_SIZE;
-
-    //set addresses
-    int serverAddr = rand() % SERVER_CHOICES;
-    packet->setDestAddress(serverAddr);
-    packet->setSrcAddress(myAddress);
-
-    //set control type
-    controlType randomType = controlType(rand() % DISCONNECT);
-    packet->setControlType(randomType);
-
-    //check var header size
-    if(randomType != CONNECT && randomType != CONNACK) {
-        packetSize = packetSize + MAX_MQTT_VARIABLE_HEADER_SIZE;
-        packet->setHasVariableHeader(true);
-    }
-
-    //check payload size
-    int payloadSize;
-    if (randomType == CONNECT || randomType == SUBSCRIBE || randomType == SUBACK || randomType == UNSUBSCRIBE) {
-        packet->setHasPayload(true);
-        payloadSize = rand() % MAX_MQTT_PAYLOAD_SIZE;
-    } else if (randomType == PUBLISH) {
-        bool hasPayload = rand() & 1;
-        packet->setHasPayload(hasPayload);
-        if (hasPayload) {
-            payloadSize = rand() % MAX_MQTT_PAYLOAD_SIZE;
-        } else {
-            payloadSize = 0;
-        }
-    } else {
-        payloadSize = 0;
-    }
-    packetSize = packetSize + payloadSize;
-    packet->setPacketSize(packetSize);
-    packet->setByteLength(packetSize);
-    return packet;
 }
 
 CoAP* IoTClient::setUpCoAPPacket()
@@ -175,7 +132,19 @@ CoAP* IoTClient::setUpCoAPPacket()
         packetSize = packetSize + (rand() % MAX_COAP_PAYLOAD_SIZE + 400);
     }
 
-    packet->setPacketSize(packetSize);
+    packet->setThisPacketSize(packetSize);
     packet->setByteLength(packetSize);
     return packet;
+}
+
+inet::IPv4Datagram_Base* IoTClient::setUpLowerPackets()
+{
+    inet::EthernetIIFrame *ethernetFrame = new inet::EthernetIIFrame();
+    std::cout << "\nETHERNET BYTE LENGTH: " << ethernetFrame->getByteLength();
+    cPacket *ipv4Frame = new cPacket();
+    inet::IPv4Datagram_Base *newipv4Frame = static_cast<inet::IPv4Datagram_Base *>(ipv4Frame);
+    newipv4Frame->setByteLength(20);
+    newipv4Frame->encapsulate(ethernetFrame);
+    std::cout << "\nipv4 DATAGRAM BYTE LENGTH: " << newipv4Frame->getByteLength();
+    return newipv4Frame;
 }

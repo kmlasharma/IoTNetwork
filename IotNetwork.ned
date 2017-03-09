@@ -1,4 +1,5 @@
 
+import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 import inet.networklayer.contract.INetworkLayer;
 import inet.physicallayer.ieee80211.bitlevel.Ieee80211LayeredScalarRadioMedium;
 
@@ -13,9 +14,9 @@ network IoTNetwork
     types:
         channel C extends ned.DatarateChannel
         {
-                datarate = 54Mbps;
-                delay = 100us;
-                ber = 1e-10;
+            datarate = 100Mbps;
+            delay = 100us;
+            ber = 1e-10;
         }
     submodules:
         Server[numServers]: Server {
@@ -25,7 +26,7 @@ network IoTNetwork
             gates:
                 in[numIntermediateRouters];
         }
-        
+
         IntermediateRouter[numIntermediateRouters]: IntermediateRouter {
             parameters:
                 myAddress = index+numServers;
@@ -34,7 +35,7 @@ network IoTNetwork
                 in[numRouters/2];
                 out[numServers];
         }
-        
+
         Router[numRouters]: Router {
             parameters:
                 myAddress = index+numServers+numIntermediateRouters;
@@ -43,22 +44,19 @@ network IoTNetwork
             gates:
                 in[12/numRouters];
         }
-        
+
         IoTClient[12]: IoTClient {
             parameters:
                 myAddress = index+numServers+numIntermediateRouters+numRouters;
                 @display("p=48,97,col");
         }
-        
-        
-        
     connections: //0th gate for forward connections to upper hierarchy
         Server[0].in[i] <-- C <-- IntermediateRouter[i].out[0] for i=0..numIntermediateRouters-1;
         Server[1].in[i] <-- C <-- IntermediateRouter[i].out[1] for i=0..numIntermediateRouters-1;
-        
+
         Router[i].out --> C --> IntermediateRouter[0].in[i] for i=0..numRouters/2-1;
         Router[i].out --> C --> IntermediateRouter[1].in[i-2] for i=numRouters/2..numRouters-1;
-        
+
         IoTClient[0].out --> C --> Router[0].in[0];
         IoTClient[1].out --> C --> Router[0].in[1];
         IoTClient[2].out --> C --> Router[0].in[2];

@@ -20,8 +20,10 @@ public:
     static void recordDurationTime(int size, omnetpp::simtime_t duration, std::string note);
     static void recordArrivalTimes(int size, omnetpp::simtime_t arrivalTime, std::string note);
     static void recordBitError(int size, std::string note);
+    static void recordPendingPackets(int numPackets, std::string type);
+    static void newPacketGenerated();
+    static void recordDataProcessed(int newSize);
 
-    //    static void timeSpentTransmitting(int hostAddr, string type, int tries);
 
 
 

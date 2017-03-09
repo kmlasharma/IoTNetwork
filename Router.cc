@@ -4,27 +4,34 @@
 #include <unordered_map>
 #include "CoAP_m.h"
 #include "IoTPacket_m.h"
-#include "MQTT_m.h"
 #include "LogGenerator.h"
 #include "AggregatedPacket_m.h"
+#include "inet/transportlayer/contract/udp/UDPSocket.h"
+#include "inet/networklayer/common/L3AddressResolver.h"
+#include "inet/networklayer/ipv4/IPv4Datagram_m.h"
+#include "inet/networklayer/contract/ipv4/IPv4Address.h"
+#include "inet/networklayer/configurator/ipv4/IPv4NetworkConfigurator.h"
+#include "inet/linklayer/ethernet/EtherFrame_m.h"
 
 using namespace omnetpp;
 
 class Router : public cSimpleModule
 {
+    inet::UDPSocket socket;
     std::unordered_map<int, AggregatedPacket *> destinationAndPacket_UDP;
-    std::unordered_map<int, AggregatedPacket *> destinationAndPacket_TCP;
     std::string COAP = "CoAP";
     int attemptsMediumAccess = 0;
+    int pendingPackets = 0;
+    bool retransmittedAgPacket = false;
 private:
     bool performAggregation;
     int myAddress;
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
-    virtual AggregatedPacket* initNewAggregatedPacket(IoTPacket *pkt, std::string protocol, int destination, std::string transportLayerProtocol);
+    virtual AggregatedPacket* initNewAggregatedPacket(IoTPacket *pkt, int destination);
     virtual void viewHashtable();
-
+    inet::IPv4Datagram_Base* setUpLowerPackets();
 };
 
 Define_Module(Router);
@@ -37,151 +44,147 @@ void Router::initialize()
     LogGenerator::init(performAggregation);
     std::cout << "\nROUTER HOST ADDR: " << myAddress;
     std::cout << "\nAggregate: " << performAggregation;
+
+    socket.setOutputGate(gate("out"));
+    socket.connect(inet::L3AddressResolver().resolve("10.0.0.3"), 3000);
 }
 
 void Router::handleMessage(cMessage *msg)
 {
-    std::string protocol;
-    std::string transportLayerProtocol;
+    std::cout << "\nJust received a packet by the name of " << msg->getClassName();
     //retransmission after channel was busy
     if (msg->isSelfMessage()) {
-        std::cout << "\nI EXPECT DIS TO BE agg " << msg->getClassName();
         if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
-            AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
-            int dest = agpacket->getDestAddress();
-            std::string protocol = agpacket->getTransportLayer();
-            if (protocol == "UDP") {
+            if (retransmittedAgPacket) {
+                retransmittedAgPacket = false;
+                AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
+                pendingPackets = pendingPackets - (agpacket->getListOfPackets().size());
+                socket.send(agpacket->dup());
+            } else {
+                AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
+                int dest = agpacket->getDestAddress();
                 destinationAndPacket_UDP.erase(dest);
-            } else if (protocol == "TCP") {
-                destinationAndPacket_TCP.erase(dest);
+                std::cout << "\nTIMER HAS GONE OFF ON THIS AG PACKET";
+                socket.send(agpacket);
             }
-            std::cout << "JUST SENDING AN AGG PACK";
-            send(agpacket, "out");
         } else {
-            send(msg->dup(), "out");
+            pendingPackets--;
+            IoTPacket *pkt = check_and_cast<IoTPacket *>(msg);
+            socket.send(pkt->dup());
         }
     } else {
-        IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
-        if (strcmp(iotPacket->getClassName(), "CoAP") == 0) {
-            protocol = "CoAP";
-            transportLayerProtocol = iotPacket->getTransportLayerProtocol();
-        } else if (strcmp(iotPacket->getClassName(), "MQTT") == 0){
-            protocol = "MQTT";
-            transportLayerProtocol = iotPacket->getTransportLayerProtocol();
-        }
+        if (strcmp(msg->getClassName(), "CoAP") == 0) {
+            IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
 
-        // determine destination address
-        if (performAggregation == true) {
-            int destination = iotPacket->getDestAddress();
-            std::unordered_map<int, AggregatedPacket *>::const_iterator got;
-            if (transportLayerProtocol == "UDP") {
-                got = destinationAndPacket_UDP.find(destination);
-            } else if (transportLayerProtocol == "TCP") {
-                got = destinationAndPacket_TCP.find(destination);
-            }
-            if (got == destinationAndPacket_TCP.end() || got == destinationAndPacket_UDP.end()) {
-                std::cout << "\nDestination not registered. Creating a packet entry...";
-                AggregatedPacket *agpacket = initNewAggregatedPacket(iotPacket, protocol, destination, transportLayerProtocol);
-                scheduleAt(simTime() + 5, agpacket);
-            } else { // packet exists already for this destination
-                std::cout << "\n" << got->first << " is " << got->second;
-                AggregatedPacket *agpacket = got->second;
-                int aggrPktSize = agpacket->getPacketSize();
-                int currentPacketSize = iotPacket->getPacketSize();
-                if (aggrPktSize + currentPacketSize >= agpacket->getMaxSize()) {
-
-                    cancelEvent(agpacket);
-                    //send off buffer packet (will have to encapsulate it in udp)
-                    cChannel *txChannel = gate("out")->getTransmissionChannel();
-                    simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
-                    attemptsMediumAccess++;
-                    if (txFinishTime <= simTime()) {
-                        // channel free; send out packet immediately
-                        send(agpacket, "out");
-                    }
-                    else { //channel busy
-                        scheduleAt(txFinishTime, agpacket);
-                    }
-                    if (transportLayerProtocol == "UDP") {
+            //determine destination address
+            if (performAggregation == true) {
+                int destination = iotPacket->getDestAddress();
+                std::unordered_map<int, AggregatedPacket *>::const_iterator got = destinationAndPacket_UDP.find(destination);
+                if (got == destinationAndPacket_UDP.end()) {
+                    std::cout << "\nDestination not registered. Creating a packet entry...";
+                    iotPacket->decapsulate();
+                    AggregatedPacket *agpacket = initNewAggregatedPacket(iotPacket, destination);
+                    scheduleAt(simTime() + 5, agpacket);
+                } else { // packet exists already for this destination
+                    std::cout << "\n" << got->first << " is " << got->second;
+                    AggregatedPacket *agpacket = got->second;
+                    int aggrPktSize = agpacket->getByteLength();
+                    int currentPacketSize = iotPacket->getThisPacketSize();
+                    if (aggrPktSize + currentPacketSize >= agpacket->getMaxSize()) {
+                        cancelEvent(agpacket);
+                        //send off buffer packet (will have to encapsulate it in udp)
+                        cChannel *txChannel = gate("out")->getTransmissionChannel();
+                        simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
+                        attemptsMediumAccess++;
+                        if (txFinishTime <= simTime()) {
+                            // channel free; send out packet immediately
+                            socket.send(agpacket);
+                        }
+                        else { //channel busy
+                            scheduleAt(txFinishTime, agpacket);
+                            pendingPackets = pendingPackets + agpacket->getListOfPackets().size();
+                            retransmittedAgPacket = true;
+                        }
                         destinationAndPacket_UDP.erase(destination);
-                    } else if (transportLayerProtocol == "TCP") {
-                        destinationAndPacket_TCP.erase(destination);
-                    }
-
-                    //send off single packet
-                    attemptsMediumAccess++;
-                    cChannel *txChannelTwo = gate("out")->getTransmissionChannel();
-                    simtime_t txFinishTimeTwo = txChannelTwo->getTransmissionFinishTime();
-                    if (txFinishTimeTwo <= simTime()) {
-                        // channel free; send out packet immediately
-                        send(iotPacket, "out");
-                    }
-                    else {
-                        scheduleAt(txFinishTimeTwo, iotPacket);
-                    }
-                } else {
-                    //add it to to buffer
-                    std::vector<IoTPacket *> listOfPackets = agpacket->getListOfPackets();
-                    int newAggregatedPacketSize = aggrPktSize + currentPacketSize;
-                    agpacket->setPacketSize(newAggregatedPacketSize);
-                    agpacket->setByteLength(newAggregatedPacketSize);
-                    std::cout << "\nJust added a packet of length " << iotPacket->getPacketSize() << " to the buffer!";
-                    listOfPackets.push_back(iotPacket);
-                    agpacket->setListOfPackets(listOfPackets);
-                    if (transportLayerProtocol == "UDP") {
+                        //send off single packet
+                        attemptsMediumAccess++;
+                        cChannel *txChannelTwo = gate("out")->getTransmissionChannel();
+                        simtime_t txFinishTimeTwo = txChannelTwo->getTransmissionFinishTime();
+                        if (txFinishTimeTwo <= simTime()) {
+                            // channel free; send out packet immediately
+                            iotPacket->removeControlInfo();
+                            socket.send(iotPacket);
+                        }
+                        else {
+                            scheduleAt(txFinishTimeTwo, iotPacket);
+                            pendingPackets++;
+                        }
+                    } else {
+                        //add it to to buffer
+                        iotPacket->decapsulate();
+                        currentPacketSize = iotPacket->getByteLength();
+                        std::vector<IoTPacket *> listOfPackets = agpacket->getListOfPackets();
+                        int newAggregatedPacketSize = aggrPktSize + currentPacketSize;
+                        agpacket->setByteLength(newAggregatedPacketSize);
+                        std::cout << "\nJust added a packet of length " << iotPacket->getByteLength() << " to the buffer!";
+                        listOfPackets.push_back(iotPacket);
+                        agpacket->setListOfPackets(listOfPackets);
                         destinationAndPacket_UDP[destination] = agpacket;
-                    } else if (transportLayerProtocol == "TCP") {
-                        destinationAndPacket_TCP[destination] = agpacket;
+                        viewHashtable();
                     }
-                    viewHashtable();
+                }
+            } else { // forward packet on
+                std::cout << "\nNo packet aggregation.";
+                cChannel *txChannelTwo = gate("out")->getTransmissionChannel();
+                simtime_t txFinishTimeTwo = txChannelTwo->getTransmissionFinishTime();
+                attemptsMediumAccess++;
+                if (txFinishTimeTwo <= simTime()) {
+                    // channel free; send out packet immediately
+                    iotPacket->removeControlInfo();
+                    socket.send(iotPacket);
+                }
+                else {
+                    pendingPackets++;
+                    scheduleAt(txFinishTimeTwo, iotPacket);
                 }
             }
-        } else { // forward packet on
-            std::cout << "\nNo packet aggregation.";
-            cChannel *txChannel = gate("out")->getTransmissionChannel();
-            simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
-            attemptsMediumAccess++;
-            if (txFinishTime <= simTime()) {
-                // channel free; send out packet immediately
-                send(iotPacket, "out");
-            }
-            else { //channel busy
-                scheduleAt(txFinishTime, iotPacket);
-            }
         }
-        LogGenerator::recordAttemptsMediumAccess(0, attemptsMediumAccess);
     }
-
-
+    LogGenerator::recordAttemptsMediumAccess(0, attemptsMediumAccess);
+    LogGenerator::recordPendingPackets(pendingPackets, "ROUTER");
 }
 
-AggregatedPacket* Router::initNewAggregatedPacket(IoTPacket *iotPkt, std::string protocol, int destination, std::string transportLayerProtocol) {
+AggregatedPacket* Router::initNewAggregatedPacket(IoTPacket *iotPkt, int destination) {
     AggregatedPacket *agpacket = new AggregatedPacket();
     std::vector<IoTPacket *> listOfPackets;
-    int currentPacketSize = iotPkt->getPacketSize();
+    int currentPacketSize = iotPkt->getByteLength();
     listOfPackets = {iotPkt};
-    agpacket->setPacketSize(currentPacketSize);
     agpacket->setListOfPackets(listOfPackets);
     agpacket->setDestAddress(destination);
     agpacket->setByteLength(currentPacketSize);
-    agpacket->setTransportLayer(transportLayerProtocol.c_str());
-    if (transportLayerProtocol == "UDP") {
-        destinationAndPacket_UDP.insert(std::make_pair(destination, agpacket));
-    } else if (transportLayerProtocol == "TCP") {
-        destinationAndPacket_TCP.insert(std::make_pair(destination, agpacket));
-    }
-    std::cout << "\nJust initialised a new agg packet!";
+    std::cout << "\nJust initialized a new aggregated packet!";
+    inet::IPv4Datagram_Base* encapped = setUpLowerPackets();
+    agpacket->encapsulate(encapped);
+    destinationAndPacket_UDP.insert(std::make_pair(destination, agpacket));
     return agpacket;
 }
 
+inet::IPv4Datagram_Base* Router::setUpLowerPackets()
+{
+    inet::EthernetIIFrame *ethernetFrame = new inet::EthernetIIFrame();
+    std::cout << "\nETHERNET BYTE LENGTH: " << ethernetFrame->getByteLength();
+    cPacket *ipv4Frame = new cPacket();
+    inet::IPv4Datagram_Base *newipv4Frame = static_cast<inet::IPv4Datagram_Base *>(ipv4Frame);
+    newipv4Frame->setByteLength(20);
+    newipv4Frame->encapsulate(ethernetFrame);
+    std::cout << "\nipv4 DATAGRAM BYTE LENGTH: " << newipv4Frame->getByteLength();
+    return newipv4Frame;
+}
 
 void Router::viewHashtable()
 {
     for ( auto it = destinationAndPacket_UDP.begin(); it != destinationAndPacket_UDP.end(); ++it ) {
-        std::cout << "\nROUTER: (UDP): " << it->first << ": " << it->second->getPacketSize();
-    }
-    for ( auto it = destinationAndPacket_TCP.begin(); it != destinationAndPacket_TCP.end(); ++it ) {
-        std::cout << "\nROUTER: (TCP): " << it->first << ": " << it->second->getPacketSize();
+        std::cout << "\nROUTER: (UDP): " << it->first << ": " << it->second->getByteLength();
     }
 }
 

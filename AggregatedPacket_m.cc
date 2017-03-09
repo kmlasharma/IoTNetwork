@@ -182,7 +182,6 @@ Register_Class(AggregatedPacket)
 AggregatedPacket::AggregatedPacket(const char *name, short kind) : ::omnetpp::cPacket(name,kind)
 {
     this->destAddress = 0;
-    this->packetSize = 0;
     this->maxSize = 1500;
 }
 
@@ -206,7 +205,6 @@ AggregatedPacket& AggregatedPacket::operator=(const AggregatedPacket& other)
 void AggregatedPacket::copy(const AggregatedPacket& other)
 {
     this->destAddress = other.destAddress;
-    this->packetSize = other.packetSize;
     this->maxSize = other.maxSize;
     this->listOfPackets = other.listOfPackets;
     this->transportLayer = other.transportLayer;
@@ -216,7 +214,6 @@ void AggregatedPacket::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cPacket::parsimPack(b);
     doParsimPacking(b,this->destAddress);
-    doParsimPacking(b,this->packetSize);
     doParsimPacking(b,this->maxSize);
     doParsimPacking(b,this->listOfPackets);
     doParsimPacking(b,this->transportLayer);
@@ -226,7 +223,6 @@ void AggregatedPacket::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cPacket::parsimUnpack(b);
     doParsimUnpacking(b,this->destAddress);
-    doParsimUnpacking(b,this->packetSize);
     doParsimUnpacking(b,this->maxSize);
     doParsimUnpacking(b,this->listOfPackets);
     doParsimUnpacking(b,this->transportLayer);
@@ -240,16 +236,6 @@ int AggregatedPacket::getDestAddress() const
 void AggregatedPacket::setDestAddress(int destAddress)
 {
     this->destAddress = destAddress;
-}
-
-int AggregatedPacket::getPacketSize() const
-{
-    return this->packetSize;
-}
-
-void AggregatedPacket::setPacketSize(int packetSize)
-{
-    this->packetSize = packetSize;
 }
 
 int AggregatedPacket::getMaxSize() const
@@ -347,7 +333,7 @@ const char *AggregatedPacketDescriptor::getProperty(const char *propertyname) co
 int AggregatedPacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 5+basedesc->getFieldCount() : 5;
+    return basedesc ? 4+basedesc->getFieldCount() : 4;
 }
 
 unsigned int AggregatedPacketDescriptor::getFieldTypeFlags(int field) const
@@ -361,11 +347,10 @@ unsigned int AggregatedPacketDescriptor::getFieldTypeFlags(int field) const
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,
         FD_ISEDITABLE,
-        FD_ISEDITABLE,
         FD_ISCOMPOUND,
         FD_ISEDITABLE,
     };
-    return (field>=0 && field<5) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<4) ? fieldTypeFlags[field] : 0;
 }
 
 const char *AggregatedPacketDescriptor::getFieldName(int field) const
@@ -378,12 +363,11 @@ const char *AggregatedPacketDescriptor::getFieldName(int field) const
     }
     static const char *fieldNames[] = {
         "destAddress",
-        "packetSize",
         "maxSize",
         "listOfPackets",
         "transportLayer",
     };
-    return (field>=0 && field<5) ? fieldNames[field] : nullptr;
+    return (field>=0 && field<4) ? fieldNames[field] : nullptr;
 }
 
 int AggregatedPacketDescriptor::findField(const char *fieldName) const
@@ -391,10 +375,9 @@ int AggregatedPacketDescriptor::findField(const char *fieldName) const
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
     if (fieldName[0]=='d' && strcmp(fieldName, "destAddress")==0) return base+0;
-    if (fieldName[0]=='p' && strcmp(fieldName, "packetSize")==0) return base+1;
-    if (fieldName[0]=='m' && strcmp(fieldName, "maxSize")==0) return base+2;
-    if (fieldName[0]=='l' && strcmp(fieldName, "listOfPackets")==0) return base+3;
-    if (fieldName[0]=='t' && strcmp(fieldName, "transportLayer")==0) return base+4;
+    if (fieldName[0]=='m' && strcmp(fieldName, "maxSize")==0) return base+1;
+    if (fieldName[0]=='l' && strcmp(fieldName, "listOfPackets")==0) return base+2;
+    if (fieldName[0]=='t' && strcmp(fieldName, "transportLayer")==0) return base+3;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -409,11 +392,10 @@ const char *AggregatedPacketDescriptor::getFieldTypeString(int field) const
     static const char *fieldTypeStrings[] = {
         "int",
         "int",
-        "int",
         "ListOfPackets",
         "string",
     };
-    return (field>=0 && field<5) ? fieldTypeStrings[field] : nullptr;
+    return (field>=0 && field<4) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **AggregatedPacketDescriptor::getFieldPropertyNames(int field) const
@@ -481,10 +463,9 @@ std::string AggregatedPacketDescriptor::getFieldValueAsString(void *object, int 
     AggregatedPacket *pp = (AggregatedPacket *)object; (void)pp;
     switch (field) {
         case 0: return long2string(pp->getDestAddress());
-        case 1: return long2string(pp->getPacketSize());
-        case 2: return long2string(pp->getMaxSize());
-        case 3: {std::stringstream out; out << pp->getListOfPackets(); return out.str();}
-        case 4: return oppstring2string(pp->getTransportLayer());
+        case 1: return long2string(pp->getMaxSize());
+        case 2: {std::stringstream out; out << pp->getListOfPackets(); return out.str();}
+        case 3: return oppstring2string(pp->getTransportLayer());
         default: return "";
     }
 }
@@ -500,9 +481,8 @@ bool AggregatedPacketDescriptor::setFieldValueAsString(void *object, int field, 
     AggregatedPacket *pp = (AggregatedPacket *)object; (void)pp;
     switch (field) {
         case 0: pp->setDestAddress(string2long(value)); return true;
-        case 1: pp->setPacketSize(string2long(value)); return true;
-        case 2: pp->setMaxSize(string2long(value)); return true;
-        case 4: pp->setTransportLayer((value)); return true;
+        case 1: pp->setMaxSize(string2long(value)); return true;
+        case 3: pp->setTransportLayer((value)); return true;
         default: return false;
     }
 }
@@ -516,7 +496,7 @@ const char *AggregatedPacketDescriptor::getFieldStructName(int field) const
         field -= basedesc->getFieldCount();
     }
     switch (field) {
-        case 3: return omnetpp::opp_typename(typeid(ListOfPackets));
+        case 2: return omnetpp::opp_typename(typeid(ListOfPackets));
         default: return nullptr;
     };
 }
@@ -531,7 +511,7 @@ void *AggregatedPacketDescriptor::getFieldStructValuePointer(void *object, int f
     }
     AggregatedPacket *pp = (AggregatedPacket *)object; (void)pp;
     switch (field) {
-        case 3: return (void *)(&pp->getListOfPackets()); break;
+        case 2: return (void *)(&pp->getListOfPackets()); break;
         default: return nullptr;
     }
 }

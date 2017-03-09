@@ -5,10 +5,13 @@
 #include "AggregatedPacket_m.h"
 #include "LogGenerator.h"
 #include <vector>
+#include "inet/transportlayer/contract/udp/UDPSocket.h"
+#include "inet/networklayer/common/L3AddressResolver.h"
 
 using namespace omnetpp;
 class Server : public cSimpleModule
 {
+    inet::UDPSocket socket;
 private:
     int myAddress;
 protected:
@@ -28,15 +31,14 @@ void Server::initialize()
 
 void Server::handleMessage(cMessage *msg)
 {
-
     if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
         AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
         std::vector<IoTPacket *> listOfPackets = agpacket->getListOfPackets();
         //disaggregate
-        delete agpacket;
         if (listOfPackets.size() > 0) {
             deconcatenate(listOfPackets);
         }
+        delete agpacket;
     } else if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0) {
         std::string classname = msg->getClassName();
         IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
@@ -48,14 +50,13 @@ void Server::handleMessage(cMessage *msg)
         if (iotPacket->hasBitError()) {
             LogGenerator::recordBitError(size, ("This packet was a " + classname));
         }
+        LogGenerator::recordDataProcessed(size);
         delete iotPacket;
     }
 }
 
 void Server::deconcatenate(std::vector<IoTPacket *> listOfPackets)
 {
-    std::cout<<"\nSERVER";
-    std::cout << "\n==================";
     for(std::vector<IoTPacket *>::iterator it = listOfPackets.begin(); it != listOfPackets.end(); ++it) {
         IoTPacket *pkt = *it;
         std::string classname = pkt->getClassName();
@@ -67,7 +68,7 @@ void Server::deconcatenate(std::vector<IoTPacket *> listOfPackets)
         if (pkt->hasBitError()) {
             LogGenerator::recordBitError(size, ("This packet was a " + classname));
         }
+        LogGenerator::recordDataProcessed(size);
     }
-    std::cout << "\n==================";
 
 }

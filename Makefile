@@ -37,15 +37,13 @@ OBJS = \
     $O/Server.o \
     $O/AggregatedPacket_m.o \
     $O/CoAP_m.o \
-    $O/IoTPacket_m.o \
-    $O/MQTT_m.o
+    $O/IoTPacket_m.o
 
 # Message files
 MSGFILES = \
     AggregatedPacket.msg \
     CoAP.msg \
-    IoTPacket.msg \
-    MQTT.msg
+    IoTPacket.msg
 
 # SM files
 SMFILES =

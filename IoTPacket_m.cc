@@ -184,6 +184,7 @@ IoTPacket::IoTPacket(const char *name, short kind) : ::omnetpp::cPacket(name,kin
     this->srcAddress = 0;
     this->destAddress = 0;
     this->packetSize = 0;
+    this->thisPacketSize = 0;
 }
 
 IoTPacket::IoTPacket(const IoTPacket& other) : ::omnetpp::cPacket(other)
@@ -208,7 +209,7 @@ void IoTPacket::copy(const IoTPacket& other)
     this->srcAddress = other.srcAddress;
     this->destAddress = other.destAddress;
     this->packetSize = other.packetSize;
-    this->transportLayerProtocol = other.transportLayerProtocol;
+    this->thisPacketSize = other.thisPacketSize;
 }
 
 void IoTPacket::parsimPack(omnetpp::cCommBuffer *b) const
@@ -217,7 +218,7 @@ void IoTPacket::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->srcAddress);
     doParsimPacking(b,this->destAddress);
     doParsimPacking(b,this->packetSize);
-    doParsimPacking(b,this->transportLayerProtocol);
+    doParsimPacking(b,this->thisPacketSize);
 }
 
 void IoTPacket::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -226,7 +227,7 @@ void IoTPacket::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->srcAddress);
     doParsimUnpacking(b,this->destAddress);
     doParsimUnpacking(b,this->packetSize);
-    doParsimUnpacking(b,this->transportLayerProtocol);
+    doParsimUnpacking(b,this->thisPacketSize);
 }
 
 int IoTPacket::getSrcAddress() const
@@ -259,14 +260,14 @@ void IoTPacket::setPacketSize(int packetSize)
     this->packetSize = packetSize;
 }
 
-const char * IoTPacket::getTransportLayerProtocol() const
+int IoTPacket::getThisPacketSize() const
 {
-    return this->transportLayerProtocol.c_str();
+    return this->thisPacketSize;
 }
 
-void IoTPacket::setTransportLayerProtocol(const char * transportLayerProtocol)
+void IoTPacket::setThisPacketSize(int thisPacketSize)
 {
-    this->transportLayerProtocol = transportLayerProtocol;
+    this->thisPacketSize = thisPacketSize;
 }
 
 class IoTPacketDescriptor : public omnetpp::cClassDescriptor
@@ -366,7 +367,7 @@ const char *IoTPacketDescriptor::getFieldName(int field) const
         "srcAddress",
         "destAddress",
         "packetSize",
-        "transportLayerProtocol",
+        "thisPacketSize",
     };
     return (field>=0 && field<4) ? fieldNames[field] : nullptr;
 }
@@ -378,7 +379,7 @@ int IoTPacketDescriptor::findField(const char *fieldName) const
     if (fieldName[0]=='s' && strcmp(fieldName, "srcAddress")==0) return base+0;
     if (fieldName[0]=='d' && strcmp(fieldName, "destAddress")==0) return base+1;
     if (fieldName[0]=='p' && strcmp(fieldName, "packetSize")==0) return base+2;
-    if (fieldName[0]=='t' && strcmp(fieldName, "transportLayerProtocol")==0) return base+3;
+    if (fieldName[0]=='t' && strcmp(fieldName, "thisPacketSize")==0) return base+3;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -394,7 +395,7 @@ const char *IoTPacketDescriptor::getFieldTypeString(int field) const
         "int",
         "int",
         "int",
-        "string",
+        "int",
     };
     return (field>=0 && field<4) ? fieldTypeStrings[field] : nullptr;
 }
@@ -466,7 +467,7 @@ std::string IoTPacketDescriptor::getFieldValueAsString(void *object, int field, 
         case 0: return long2string(pp->getSrcAddress());
         case 1: return long2string(pp->getDestAddress());
         case 2: return long2string(pp->getPacketSize());
-        case 3: return oppstring2string(pp->getTransportLayerProtocol());
+        case 3: return long2string(pp->getThisPacketSize());
         default: return "";
     }
 }
@@ -484,7 +485,7 @@ bool IoTPacketDescriptor::setFieldValueAsString(void *object, int field, int i, 
         case 0: pp->setSrcAddress(string2long(value)); return true;
         case 1: pp->setDestAddress(string2long(value)); return true;
         case 2: pp->setPacketSize(string2long(value)); return true;
-        case 3: pp->setTransportLayerProtocol((value)); return true;
+        case 3: pp->setThisPacketSize(string2long(value)); return true;
         default: return false;
     }
 }

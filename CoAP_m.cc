@@ -199,8 +199,6 @@ Register_Class(CoAP)
 
 CoAP::CoAP(const char *name, short kind) : ::IoTPacket(name,kind)
 {
-    this->setTransportLayerProtocol("UDP");
-
     this->type = 0;
     this->code = 0;
     this->hasToken = false;

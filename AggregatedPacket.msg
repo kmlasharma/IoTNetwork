@@ -10,7 +10,6 @@ class noncobject ListOfPackets;
 packet AggregatedPacket extends cPacket
 {
     int destAddress;
-    int packetSize;
     int maxSize = 1500;
 	ListOfPackets listOfPackets;
 	string transportLayer;

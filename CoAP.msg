@@ -28,7 +28,6 @@ packet CoAP extends IoTPacket
 	bool hasOptions;
 	bool hasPayload;
 	string payload;
-	transportLayerProtocol = "UDP";
 };
 
 

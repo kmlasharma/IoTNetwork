@@ -18,6 +18,8 @@ std::unordered_map<int, int> MediumAccessCounts; // node type, medium access cou
 std::unordered_map<int, int> PacketDurationAndSize;
 int totalPacketsReceived = 0;
 int totalErrorPackets = 0;
+int totalPacketsCreated = 0;
+int totalDataProcessed = 0;
 
 void LogGenerator::init(bool aggregate)
 {
@@ -50,7 +52,6 @@ void LogGenerator::recordAttemptsMediumAccess(int type, int tries)
 }
 
 void LogGenerator::recordDurationTime(int size, omnetpp::simtime_t duration, std::string note) {
-    std::string line = "";
     logfile << "\n=== PACKET SIZE v DURATION ===";
     logfile << "\nSize: " << size << ", Duration: " << duration << ", Note: " << note;
     logfile << "\n============================";
@@ -59,7 +60,6 @@ void LogGenerator::recordDurationTime(int size, omnetpp::simtime_t duration, std
 
 void LogGenerator::logData()
 {
-    std::string line = "";
     logfile << "\n=== MEDIUM ACCESS COUNTS ===";
     int total = 0;
     for ( auto it = MediumAccessCounts.begin(); it != MediumAccessCounts.end(); ++it ) {
@@ -71,7 +71,6 @@ void LogGenerator::logData()
 }
 
 void LogGenerator::recordArrivalTimes(int size, omnetpp::simtime_t arrivalTime, std::string note) {
-    std::string line = "";
     logfile << "\n=== PACKET SIZE & ARRIVAL ===";
     logfile << "\nSize: " << size << ", Arrival Time: " << arrivalTime << ", Note: " << note;
     logfile << "\n===========================";
@@ -80,11 +79,30 @@ void LogGenerator::recordArrivalTimes(int size, omnetpp::simtime_t arrivalTime, 
 }
 
 void LogGenerator::recordBitError(int size, std::string note) {
-    std::string line = "";
     totalErrorPackets++;
     logfile << "\n=== ERROR PACKETS ===";
     logfile << "\nSize: " << size << ", Note: " << note;
     logfile << "\nTotal count of error packets: " << totalErrorPackets;
     logfile << "\n===========================";
+}
+
+void LogGenerator::recordPendingPackets(int numPackets, std::string type) {
+    logfile << "\n=== TOTAL PACKETS PENDING TRANSMISSION (" + type + ")";
+    logfile << "\nTotal count pending packets: " << numPackets;
+    logfile << "\n==============================";
+}
+
+void LogGenerator::newPacketGenerated() {
+    totalPacketsCreated++;
+    logfile << "\n=== TOTAL PACKETS CREATED IN SIM: ===";
+    logfile << "\nTotal count of packets generated: " << totalPacketsCreated;
+    logfile << "\n==============================";
+}
+
+void LogGenerator::recordDataProcessed(int newSize) {
+    totalDataProcessed += newSize;
+    logfile << "\n=== DATA PROCESSED BY SERVER: ===";
+    logfile << "\nTotal data processed by server: " << totalDataProcessed;
+    logfile << "\n==============================";
 }
 

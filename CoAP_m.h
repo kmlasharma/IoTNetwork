@@ -73,7 +73,6 @@ enum packetCode {
  *     bool hasOptions;
  *     bool hasPayload;
  *     string payload;
- *     transportLayerProtocol = "UDP";
  * }
  * </pre>
  */

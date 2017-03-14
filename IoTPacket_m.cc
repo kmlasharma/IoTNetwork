@@ -183,7 +183,6 @@ IoTPacket::IoTPacket(const char *name, short kind) : ::omnetpp::cPacket(name,kin
 {
     this->srcAddress = 0;
     this->destAddress = 0;
-    this->packetSize = 0;
     this->thisPacketSize = 0;
 }
 
@@ -208,7 +207,6 @@ void IoTPacket::copy(const IoTPacket& other)
 {
     this->srcAddress = other.srcAddress;
     this->destAddress = other.destAddress;
-    this->packetSize = other.packetSize;
     this->thisPacketSize = other.thisPacketSize;
 }
 
@@ -217,7 +215,6 @@ void IoTPacket::parsimPack(omnetpp::cCommBuffer *b) const
     ::omnetpp::cPacket::parsimPack(b);
     doParsimPacking(b,this->srcAddress);
     doParsimPacking(b,this->destAddress);
-    doParsimPacking(b,this->packetSize);
     doParsimPacking(b,this->thisPacketSize);
 }
 
@@ -226,7 +223,6 @@ void IoTPacket::parsimUnpack(omnetpp::cCommBuffer *b)
     ::omnetpp::cPacket::parsimUnpack(b);
     doParsimUnpacking(b,this->srcAddress);
     doParsimUnpacking(b,this->destAddress);
-    doParsimUnpacking(b,this->packetSize);
     doParsimUnpacking(b,this->thisPacketSize);
 }
 
@@ -248,16 +244,6 @@ int IoTPacket::getDestAddress() const
 void IoTPacket::setDestAddress(int destAddress)
 {
     this->destAddress = destAddress;
-}
-
-int IoTPacket::getPacketSize() const
-{
-    return this->packetSize;
-}
-
-void IoTPacket::setPacketSize(int packetSize)
-{
-    this->packetSize = packetSize;
 }
 
 int IoTPacket::getThisPacketSize() const
@@ -335,7 +321,7 @@ const char *IoTPacketDescriptor::getProperty(const char *propertyname) const
 int IoTPacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 4+basedesc->getFieldCount() : 4;
+    return basedesc ? 3+basedesc->getFieldCount() : 3;
 }
 
 unsigned int IoTPacketDescriptor::getFieldTypeFlags(int field) const
@@ -350,9 +336,8 @@ unsigned int IoTPacketDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,
         FD_ISEDITABLE,
         FD_ISEDITABLE,
-        FD_ISEDITABLE,
     };
-    return (field>=0 && field<4) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
 }
 
 const char *IoTPacketDescriptor::getFieldName(int field) const
@@ -366,10 +351,9 @@ const char *IoTPacketDescriptor::getFieldName(int field) const
     static const char *fieldNames[] = {
         "srcAddress",
         "destAddress",
-        "packetSize",
         "thisPacketSize",
     };
-    return (field>=0 && field<4) ? fieldNames[field] : nullptr;
+    return (field>=0 && field<3) ? fieldNames[field] : nullptr;
 }
 
 int IoTPacketDescriptor::findField(const char *fieldName) const
@@ -378,8 +362,7 @@ int IoTPacketDescriptor::findField(const char *fieldName) const
     int base = basedesc ? basedesc->getFieldCount() : 0;
     if (fieldName[0]=='s' && strcmp(fieldName, "srcAddress")==0) return base+0;
     if (fieldName[0]=='d' && strcmp(fieldName, "destAddress")==0) return base+1;
-    if (fieldName[0]=='p' && strcmp(fieldName, "packetSize")==0) return base+2;
-    if (fieldName[0]=='t' && strcmp(fieldName, "thisPacketSize")==0) return base+3;
+    if (fieldName[0]=='t' && strcmp(fieldName, "thisPacketSize")==0) return base+2;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -395,9 +378,8 @@ const char *IoTPacketDescriptor::getFieldTypeString(int field) const
         "int",
         "int",
         "int",
-        "int",
     };
-    return (field>=0 && field<4) ? fieldTypeStrings[field] : nullptr;
+    return (field>=0 && field<3) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **IoTPacketDescriptor::getFieldPropertyNames(int field) const
@@ -466,8 +448,7 @@ std::string IoTPacketDescriptor::getFieldValueAsString(void *object, int field, 
     switch (field) {
         case 0: return long2string(pp->getSrcAddress());
         case 1: return long2string(pp->getDestAddress());
-        case 2: return long2string(pp->getPacketSize());
-        case 3: return long2string(pp->getThisPacketSize());
+        case 2: return long2string(pp->getThisPacketSize());
         default: return "";
     }
 }
@@ -484,8 +465,7 @@ bool IoTPacketDescriptor::setFieldValueAsString(void *object, int field, int i, 
     switch (field) {
         case 0: pp->setSrcAddress(string2long(value)); return true;
         case 1: pp->setDestAddress(string2long(value)); return true;
-        case 2: pp->setPacketSize(string2long(value)); return true;
-        case 3: pp->setThisPacketSize(string2long(value)); return true;
+        case 2: pp->setThisPacketSize(string2long(value)); return true;
         default: return false;
     }
 }

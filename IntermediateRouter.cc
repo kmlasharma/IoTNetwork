@@ -46,19 +46,17 @@ void IntermediateRouter::handleMessage(cMessage *msg)
         if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
             AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
             int dest = agpacket->getDestAddress();
-            pendingPackets--;
-            //            send(agpacket->dup(), "out", dest);
+            pendingPackets = pendingPackets - (agpacket->getListOfPackets().size());
             if (dest == 0) {
                 socketZero.sendTo(agpacket->dup(), inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
             } else {
                 socketOne.sendTo(agpacket->dup(), inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
             }
 
-        } else if (strcmp(msg->getClassName(), "CoAP") == 0 || strcmp(msg->getClassName(), "MQTT") == 0){
+        } else if (strcmp(msg->getClassName(), "CoAP") == 0){
             IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
             int dest = iotPacket->getDestAddress();
             pendingPackets--;
-            //            send(iotPacket->dup(), "out", dest);
             if (dest == 0) {
                 socketZero.sendTo(iotPacket->dup(), inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
             } else {
@@ -74,7 +72,6 @@ void IntermediateRouter::handleMessage(cMessage *msg)
             simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
             if (txFinishTime <= simTime()) {
                 // channel free; send out packet immediately
-                //                send(agpacket, "out", dest);
                 agpacket->removeControlInfo();
                 if (dest == 0) {
                     socketZero.sendTo(agpacket, inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
@@ -84,7 +81,7 @@ void IntermediateRouter::handleMessage(cMessage *msg)
             }
             else {
                 scheduleAt(txFinishTime, agpacket);
-                pendingPackets++;
+                pendingPackets = pendingPackets + (agpacket->getListOfPackets().size());
             }
 
         } else if (strcmp(msg->getClassName(), "CoAP") == 0){
@@ -95,7 +92,6 @@ void IntermediateRouter::handleMessage(cMessage *msg)
             simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
             if (txFinishTime <= simTime()) {
                 // channel free; send out packet immediately
-                //                send(iotPacket, "out", dest);
                 iotPacket->removeControlInfo();
                 if (dest == 0) {
                     socketZero.sendTo(iotPacket, inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
@@ -110,8 +106,7 @@ void IntermediateRouter::handleMessage(cMessage *msg)
         }
     }
     LogGenerator::recordAttemptsMediumAccess(1, attemptsMediumAccess);
-    std::string type = "INTERMEDIATE ROUTER";
-    LogGenerator::recordPendingPackets(pendingPackets, type);
+    LogGenerator::recordPendingPackets(pendingPackets, 1);
 
 }
 

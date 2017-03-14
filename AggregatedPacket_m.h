@@ -31,7 +31,7 @@
  *     int destAddress;
  *     int maxSize = 1500;
  *     ListOfPackets listOfPackets;
- *     string transportLayer;
+ *     int numPacketsExpected;
  * }
  * </pre>
  */
@@ -41,7 +41,7 @@ class AggregatedPacket : public ::omnetpp::cPacket
     int destAddress;
     int maxSize;
     ListOfPackets listOfPackets;
-    ::omnetpp::opp_string transportLayer;
+    int numPacketsExpected;
 
   private:
     void copy(const AggregatedPacket& other);
@@ -67,8 +67,8 @@ class AggregatedPacket : public ::omnetpp::cPacket
     virtual ListOfPackets& getListOfPackets();
     virtual const ListOfPackets& getListOfPackets() const {return const_cast<AggregatedPacket*>(this)->getListOfPackets();}
     virtual void setListOfPackets(const ListOfPackets& listOfPackets);
-    virtual const char * getTransportLayer() const;
-    virtual void setTransportLayer(const char * transportLayer);
+    virtual int getNumPacketsExpected() const;
+    virtual void setNumPacketsExpected(int numPacketsExpected);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const AggregatedPacket& obj) {obj.parsimPack(b);}

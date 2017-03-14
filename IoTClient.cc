@@ -43,11 +43,9 @@ Define_Module(IoTClient);
 void IoTClient::initialize()
 {
     myAddress = par("myAddress");
-//    IPv4Address myAddress = new IPv4Address(10, 0, 0, 2);
     std::cout << "\nCLIENT HOST ADDR: " << myAddress;
     socket.setOutputGate(gate("out"));
     socket.connect(inet::L3AddressResolver().resolve("10.0.0.2"), 2000);
-//    socket.connect(L3AddressResolver().resolve("10.0.0.2"), 2000);
     scheduleAt(simTime()+par("sendIaTime").doubleValue(), new cMessage);
 }
 
@@ -62,9 +60,6 @@ void IoTClient::handleMessage(cMessage *msg)
             scheduleAt(simTime()+par("sendIaTime").doubleValue(), msg);
         }
     }
-    else {
-        processPacket(check_and_cast<cPacket *>(msg));
-    }
 }
 
 void IoTClient::sendPacket()
@@ -72,7 +67,9 @@ void IoTClient::sendPacket()
     std::cout << "\nGenerating a CoAP packet";
     CoAP *packet = setUpCoAPPacket();
     inet::IPv4Datagram_Base* encapped = setUpLowerPackets();
+    std::cout<< "\nOLD SIZE OF PACK " << packet->getByteLength();
     packet->encapsulate(encapped);
+    std::cout<< "\nNEW SIZE OF PACK " << packet->getByteLength();
     std::cout<< "\nIOT CLIENT SENDING TO " << packet->getDestAddress();
 
     //send off buffer packet
@@ -87,11 +84,6 @@ void IoTClient::sendPacket()
     } else { //channel busy
         scheduleAt(txFinishTime, packet);
     }
-}
-
-void IoTClient::processPacket(cPacket *packet)
-{
-    delete packet;
 }
 
 CoAP* IoTClient::setUpCoAPPacket()

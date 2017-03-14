@@ -25,7 +25,6 @@
  * {
  *     int srcAddress;
  *     int destAddress;
- *     int packetSize;
  *     int thisPacketSize;
  * }
  * </pre>
@@ -35,7 +34,6 @@ class IoTPacket : public ::omnetpp::cPacket
   protected:
     int srcAddress;
     int destAddress;
-    int packetSize;
     int thisPacketSize;
 
   private:
@@ -59,8 +57,6 @@ class IoTPacket : public ::omnetpp::cPacket
     virtual void setSrcAddress(int srcAddress);
     virtual int getDestAddress() const;
     virtual void setDestAddress(int destAddress);
-    virtual int getPacketSize() const;
-    virtual void setPacketSize(int packetSize);
     virtual int getThisPacketSize() const;
     virtual void setThisPacketSize(int thisPacketSize);
 };

@@ -16,13 +16,15 @@ class LogGenerator
 public:
     static void init(bool aggregate);
     static void recordAttemptsMediumAccess(int type, int tries);
-    static void logData();
+    static void logContentions();
     static void recordDurationTime(int size, omnetpp::simtime_t duration, std::string note);
     static void recordArrivalTimes(int size, omnetpp::simtime_t arrivalTime, std::string note);
     static void recordBitError(int size, std::string note);
-    static void recordPendingPackets(int numPackets, std::string type);
+    static void recordPendingPackets(int numPackets, int type);
     static void newPacketGenerated();
     static void recordDataProcessed(int newSize);
+    static void recordAnError(std::string errorMessage);
+    static void recordPacketsReceivedInInterval(int packetsReceived);
 
 
 

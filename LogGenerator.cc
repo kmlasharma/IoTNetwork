@@ -15,7 +15,8 @@ std::string aggregateStr = "Not_Aggregated";
 static const std::string FOLDER_NAME = "./Logs/";
 static const std::string NODE_TYPES[3] = {"ROUTER", "INTERMEDIATE ROUTER", "SERVER"};
 std::unordered_map<int, int> MediumAccessCounts; // node type, medium access count
-std::unordered_map<int, int> PacketDurationAndSize;
+int numOfPacketsReceivedInterval = 0;
+int sumIntervals = 0;
 int totalPacketsReceived = 0;
 int totalErrorPackets = 0;
 int totalPacketsCreated = 0;
@@ -48,7 +49,7 @@ void LogGenerator::recordAttemptsMediumAccess(int type, int tries)
     else {
         MediumAccessCounts.insert(std::make_pair(type, tries));
     }
-    logData();
+    logContentions();
 }
 
 void LogGenerator::recordDurationTime(int size, omnetpp::simtime_t duration, std::string note) {
@@ -58,7 +59,7 @@ void LogGenerator::recordDurationTime(int size, omnetpp::simtime_t duration, std
 }
 
 
-void LogGenerator::logData()
+void LogGenerator::logContentions()
 {
     logfile << "\n=== MEDIUM ACCESS COUNTS ===";
     int total = 0;
@@ -86,8 +87,8 @@ void LogGenerator::recordBitError(int size, std::string note) {
     logfile << "\n===========================";
 }
 
-void LogGenerator::recordPendingPackets(int numPackets, std::string type) {
-    logfile << "\n=== TOTAL PACKETS PENDING TRANSMISSION (" + type + ")";
+void LogGenerator::recordPendingPackets(int numPackets, int type) {
+    logfile << "\n=== TOTAL PACKETS PENDING TRANSMISSION (" + NODE_TYPES[type] + ")";
     logfile << "\nTotal count pending packets: " << numPackets;
     logfile << "\n==============================";
 }
@@ -105,4 +106,22 @@ void LogGenerator::recordDataProcessed(int newSize) {
     logfile << "\nTotal data processed by server: " << totalDataProcessed;
     logfile << "\n==============================";
 }
+
+void LogGenerator::recordAnError(std::string errorMessage) {
+    logfile << "\n=== ERROR ENCOUNTERED BY SERVER: ===";
+    logfile << "\nError message: " << errorMessage;
+    logfile << "\n==============================";
+}
+
+void LogGenerator::recordPacketsReceivedInInterval(int packetsReceived) {
+    numOfPacketsReceivedInterval = numOfPacketsReceivedInterval + packetsReceived;
+    sumIntervals++;
+    int average = numOfPacketsReceivedInterval / sumIntervals;
+    logfile << "\n=== THROUGHPUT MEASURES: ===";
+    logfile << "\nWithin 20 seconds, " + std::to_string(packetsReceived) + " packets were received";
+    logfile << "\nThe current average is: " + std::to_string(average);
+    logfile << "\n==============================";
+}
+
+
 

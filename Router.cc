@@ -19,7 +19,6 @@ class Router : public cSimpleModule
 {
     inet::UDPSocket socket;
     std::unordered_map<int, AggregatedPacket *> destinationAndPacket_UDP;
-    std::string COAP = "CoAP";
     int attemptsMediumAccess = 0;
     int pendingPackets = 0;
     bool retransmittedAgPacket = false;
@@ -59,8 +58,10 @@ void Router::handleMessage(cMessage *msg)
                 retransmittedAgPacket = false;
                 AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
                 pendingPackets = pendingPackets - (agpacket->getListOfPackets().size());
+                LogGenerator::recordPendingPackets(pendingPackets, 0);
                 socket.send(agpacket->dup());
-            } else {
+            } else { //the timer has gone off on packet
+                std::cout << "\nAHH THE TIMER WENT OFF";
                 AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
                 int dest = agpacket->getDestAddress();
                 destinationAndPacket_UDP.erase(dest);
@@ -69,13 +70,13 @@ void Router::handleMessage(cMessage *msg)
             }
         } else {
             pendingPackets--;
+            LogGenerator::recordPendingPackets(pendingPackets, 0);
             IoTPacket *pkt = check_and_cast<IoTPacket *>(msg);
             socket.send(pkt->dup());
         }
     } else {
         if (strcmp(msg->getClassName(), "CoAP") == 0) {
             IoTPacket *iotPacket = check_and_cast<IoTPacket *>(msg);
-
             //determine destination address
             if (performAggregation == true) {
                 int destination = iotPacket->getDestAddress();
@@ -84,15 +85,16 @@ void Router::handleMessage(cMessage *msg)
                     std::cout << "\nDestination not registered. Creating a packet entry...";
                     iotPacket->decapsulate();
                     AggregatedPacket *agpacket = initNewAggregatedPacket(iotPacket, destination);
-                    scheduleAt(simTime() + 5, agpacket);
-                } else { // packet exists already for this destination
+                    scheduleAt(simTime() + 5, agpacket); //set a 5 second timer on this packet
+                } else { // agpacket exists already for this destination
                     std::cout << "\n" << got->first << " is " << got->second;
                     AggregatedPacket *agpacket = got->second;
                     int aggrPktSize = agpacket->getByteLength();
                     int currentPacketSize = iotPacket->getThisPacketSize();
                     if (aggrPktSize + currentPacketSize >= agpacket->getMaxSize()) {
-                        cancelEvent(agpacket);
-                        //send off buffer packet (will have to encapsulate it in udp)
+                        cancelEvent(agpacket); //cancel timer on ag packet
+
+                        //send off ag packet
                         cChannel *txChannel = gate("out")->getTransmissionChannel();
                         simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
                         attemptsMediumAccess++;
@@ -103,6 +105,7 @@ void Router::handleMessage(cMessage *msg)
                         else { //channel busy
                             scheduleAt(txFinishTime, agpacket);
                             pendingPackets = pendingPackets + agpacket->getListOfPackets().size();
+                            LogGenerator::recordPendingPackets(pendingPackets, 0);
                             retransmittedAgPacket = true;
                         }
                         destinationAndPacket_UDP.erase(destination);
@@ -118,6 +121,7 @@ void Router::handleMessage(cMessage *msg)
                         else {
                             scheduleAt(txFinishTimeTwo, iotPacket);
                             pendingPackets++;
+                            LogGenerator::recordPendingPackets(pendingPackets, 0);
                         }
                     } else {
                         //add it to to buffer
@@ -129,6 +133,9 @@ void Router::handleMessage(cMessage *msg)
                         std::cout << "\nJust added a packet of length " << iotPacket->getByteLength() << " to the buffer!";
                         listOfPackets.push_back(iotPacket);
                         agpacket->setListOfPackets(listOfPackets);
+                        int packetCount = agpacket->getNumPacketsExpected();
+                        packetCount++;
+                        agpacket->setNumPacketsExpected(packetCount);
                         destinationAndPacket_UDP[destination] = agpacket;
                         viewHashtable();
                     }
@@ -151,20 +158,19 @@ void Router::handleMessage(cMessage *msg)
         }
     }
     LogGenerator::recordAttemptsMediumAccess(0, attemptsMediumAccess);
-    LogGenerator::recordPendingPackets(pendingPackets, "ROUTER");
 }
 
 AggregatedPacket* Router::initNewAggregatedPacket(IoTPacket *iotPkt, int destination) {
     AggregatedPacket *agpacket = new AggregatedPacket();
-    std::vector<IoTPacket *> listOfPackets;
+    std::vector<IoTPacket *> listOfPackets = {iotPkt};
     int currentPacketSize = iotPkt->getByteLength();
-    listOfPackets = {iotPkt};
     agpacket->setListOfPackets(listOfPackets);
     agpacket->setDestAddress(destination);
-    agpacket->setByteLength(currentPacketSize);
     std::cout << "\nJust initialized a new aggregated packet!";
     inet::IPv4Datagram_Base* encapped = setUpLowerPackets();
+    agpacket->setByteLength(currentPacketSize);
     agpacket->encapsulate(encapped);
+    agpacket->setNumPacketsExpected(1);
     destinationAndPacket_UDP.insert(std::make_pair(destination, agpacket));
     return agpacket;
 }

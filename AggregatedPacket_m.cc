@@ -183,6 +183,7 @@ AggregatedPacket::AggregatedPacket(const char *name, short kind) : ::omnetpp::cP
 {
     this->destAddress = 0;
     this->maxSize = 1500;
+    this->numPacketsExpected = 0;
 }
 
 AggregatedPacket::AggregatedPacket(const AggregatedPacket& other) : ::omnetpp::cPacket(other)
@@ -207,7 +208,7 @@ void AggregatedPacket::copy(const AggregatedPacket& other)
     this->destAddress = other.destAddress;
     this->maxSize = other.maxSize;
     this->listOfPackets = other.listOfPackets;
-    this->transportLayer = other.transportLayer;
+    this->numPacketsExpected = other.numPacketsExpected;
 }
 
 void AggregatedPacket::parsimPack(omnetpp::cCommBuffer *b) const
@@ -216,7 +217,7 @@ void AggregatedPacket::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->destAddress);
     doParsimPacking(b,this->maxSize);
     doParsimPacking(b,this->listOfPackets);
-    doParsimPacking(b,this->transportLayer);
+    doParsimPacking(b,this->numPacketsExpected);
 }
 
 void AggregatedPacket::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -225,7 +226,7 @@ void AggregatedPacket::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->destAddress);
     doParsimUnpacking(b,this->maxSize);
     doParsimUnpacking(b,this->listOfPackets);
-    doParsimUnpacking(b,this->transportLayer);
+    doParsimUnpacking(b,this->numPacketsExpected);
 }
 
 int AggregatedPacket::getDestAddress() const
@@ -258,14 +259,14 @@ void AggregatedPacket::setListOfPackets(const ListOfPackets& listOfPackets)
     this->listOfPackets = listOfPackets;
 }
 
-const char * AggregatedPacket::getTransportLayer() const
+int AggregatedPacket::getNumPacketsExpected() const
 {
-    return this->transportLayer.c_str();
+    return this->numPacketsExpected;
 }
 
-void AggregatedPacket::setTransportLayer(const char * transportLayer)
+void AggregatedPacket::setNumPacketsExpected(int numPacketsExpected)
 {
-    this->transportLayer = transportLayer;
+    this->numPacketsExpected = numPacketsExpected;
 }
 
 class AggregatedPacketDescriptor : public omnetpp::cClassDescriptor
@@ -365,7 +366,7 @@ const char *AggregatedPacketDescriptor::getFieldName(int field) const
         "destAddress",
         "maxSize",
         "listOfPackets",
-        "transportLayer",
+        "numPacketsExpected",
     };
     return (field>=0 && field<4) ? fieldNames[field] : nullptr;
 }
@@ -377,7 +378,7 @@ int AggregatedPacketDescriptor::findField(const char *fieldName) const
     if (fieldName[0]=='d' && strcmp(fieldName, "destAddress")==0) return base+0;
     if (fieldName[0]=='m' && strcmp(fieldName, "maxSize")==0) return base+1;
     if (fieldName[0]=='l' && strcmp(fieldName, "listOfPackets")==0) return base+2;
-    if (fieldName[0]=='t' && strcmp(fieldName, "transportLayer")==0) return base+3;
+    if (fieldName[0]=='n' && strcmp(fieldName, "numPacketsExpected")==0) return base+3;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -393,7 +394,7 @@ const char *AggregatedPacketDescriptor::getFieldTypeString(int field) const
         "int",
         "int",
         "ListOfPackets",
-        "string",
+        "int",
     };
     return (field>=0 && field<4) ? fieldTypeStrings[field] : nullptr;
 }
@@ -465,7 +466,7 @@ std::string AggregatedPacketDescriptor::getFieldValueAsString(void *object, int 
         case 0: return long2string(pp->getDestAddress());
         case 1: return long2string(pp->getMaxSize());
         case 2: {std::stringstream out; out << pp->getListOfPackets(); return out.str();}
-        case 3: return oppstring2string(pp->getTransportLayer());
+        case 3: return long2string(pp->getNumPacketsExpected());
         default: return "";
     }
 }
@@ -482,7 +483,7 @@ bool AggregatedPacketDescriptor::setFieldValueAsString(void *object, int field, 
     switch (field) {
         case 0: pp->setDestAddress(string2long(value)); return true;
         case 1: pp->setMaxSize(string2long(value)); return true;
-        case 3: pp->setTransportLayer((value)); return true;
+        case 3: pp->setNumPacketsExpected(string2long(value)); return true;
         default: return false;
     }
 }

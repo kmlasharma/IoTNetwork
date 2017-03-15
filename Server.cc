@@ -44,6 +44,7 @@ void Server::handleMessage(cMessage *msg)
     if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
         AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
         std::vector<IoTPacket *> listOfPackets = agpacket->getListOfPackets();
+        numPacketsReceivedInInterval += listOfPackets.size();
         //disaggregate
         int expectedNum = agpacket->getNumPacketsExpected();
         int actualNum = listOfPackets.size();
@@ -77,7 +78,6 @@ void Server::deconcatenate(std::vector<IoTPacket *> listOfPackets)
     int currIndex = 0;
     int length = listOfPackets.size();
     for(std::vector<IoTPacket *>::iterator it = listOfPackets.begin(); it != listOfPackets.end(); ++it) {
-        numPacketsReceivedInInterval++;
         IoTPacket *pkt = *it;
         std::string classname = pkt->getClassName();
         simtime_t durationTime = pkt->getDuration();

@@ -25,7 +25,9 @@ public:
     static void recordDataProcessed(int newSize);
     static void recordAnError(std::string errorMessage);
     static void recordPacketsReceivedInInterval(int packetsReceived);
-
+    static void recordMediumUtilisation(double transmissionTime, double backOffTime, int typ);
+    static void recordTransmissionTime(omnetpp::simtime_t transmissionTime, int type);
+    static void recordBackOffTime(omnetpp::simtime_t backoffTime, int type);
 
 
 

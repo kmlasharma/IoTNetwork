@@ -9,11 +9,6 @@
 #include "inet/networklayer/contract/ipv4/IPv4Address.h"
 #include "inet/networklayer/configurator/ipv4/IPv4NetworkConfigurator.h"
 
-namespace inet {
-
-class IPv4Datagram;
-
-}
 using namespace omnetpp;
 
 class IoTClient : public cSimpleModule

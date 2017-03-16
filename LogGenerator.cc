@@ -21,6 +21,7 @@ int totalPacketsReceived = 0;
 int totalErrorPackets = 0;
 int totalPacketsCreated = 0;
 int totalDataProcessed = 0;
+int sumUtilisationIntervals = 0;
 
 void LogGenerator::init(bool aggregate)
 {
@@ -122,6 +123,33 @@ void LogGenerator::recordPacketsReceivedInInterval(int packetsReceived) {
     logfile << "\nThe current average is: " + std::to_string(average);
     logfile << "\n==============================";
 }
+
+void LogGenerator::recordTransmissionTime(omnetpp::simtime_t transmissionTime, int type)
+{
+    logfile << "\n=== TRANSMISSION TIME ===";
+    logfile << "\n" << NODE_TYPES[type] << " spent " << transmissionTime << " seconds in transmission";
+}
+
+void LogGenerator::recordBackOffTime(omnetpp::simtime_t backoffTime, int type)
+{
+    logfile << "\n=== BACK OFF TIME ===";
+    logfile << "\n" << NODE_TYPES[type] << " spent " << backoffTime << " seconds in back off";
+}
+
+//void LogGenerator::recordMediumUtilisation(omnetpp::simtime_t transmissionTime, omnetpp::simtime_t backOffTime, int type)
+//{
+//    sumUtilisationIntervals++;
+//    transmissionAcc = transmissionAcc + transmissionTime;
+//    backOffAcc = backOffAcc + backOffTime;
+//    logfile << "\n=== MEDIUM UTILISATION STATISTICS: ===";
+//    omnetpp::simtime_t total = transmissionTime + backOffTime;
+//    logfile << NODE_TYPES[type] << " spent " << transmissionTime << " microseconds in transmission and " << total << " in both transmission and back off.";
+//    omnetpp::simtime_t percentage = (transmissionTime / total) * 100;
+//    logfile << "\nMedium utilisation percentage is " << percentage << "%";
+//    omnetpp::simtime_t averagePercentage = (transmissionAcc / (transmissionAcc + backOffAcc)) * 100;
+//    logfile << "\nThe current average is: " << averagePercentage;
+//    logfile << "\n==============================";
+//}
 
 
 

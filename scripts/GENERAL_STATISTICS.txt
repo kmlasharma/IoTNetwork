@@ -1,0 +1,22 @@
+
+== THROUGHPUT ==
+Aggregated algorithm: (Average packets received in 20 seconds) 301
+Non aggregated algorithm: (Average packets received in 20 seconds) 303
+
+== MEDIUM ACCESS ATTEMPTS ==
+Aggregated algorithm: 11,608,741
+Non aggregated algorithm: 31,106,058
+Non aggregated algorithm contended 19,497,317 more times.
+
+== TOTAL DATA PROCESSED BY SERVER ==
+Aggregated algorithm: 4,418,779 bytes
+Non aggregated algorithm: 4,610,277 bytes
+Non aggregated algorithm made servers process 191,498 more bytes.
+
+== PACKET GENERATION & RECEIPT ==
+Aggregated algorithm: 9096 packets were generated and 9079 packets were received
+Non aggregated algorithm: 9103 packets were generated and 9103 packets were received
+
+== MEDIUM UTILISATION ==
+Aggregated medium utilisation: 49.1%
+Non Aggregated medium utilisation: 44.4%

@@ -50,6 +50,8 @@ void Router::initialize()
 
 void Router::handleMessage(cMessage *msg)
 {
+    simtime_t start;
+    simtime_t end;
     std::cout << "\nJust received a packet by the name of " << msg->getClassName();
     //retransmission after channel was busy
     if (msg->isSelfMessage()) {
@@ -59,20 +61,35 @@ void Router::handleMessage(cMessage *msg)
                 AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
                 pendingPackets = pendingPackets - (agpacket->getListOfPackets().size());
                 LogGenerator::recordPendingPackets(pendingPackets, 0);
+
+                start = simTime();
                 socket.send(agpacket->dup());
+                cChannel *txChannel = gate("out")->getTransmissionChannel();
+                end = txChannel->getTransmissionFinishTime();
+                LogGenerator::recordTransmissionTime((end - start), 0);
             } else { //the timer has gone off on packet
                 std::cout << "\nAHH THE TIMER WENT OFF";
                 AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
                 int dest = agpacket->getDestAddress();
                 destinationAndPacket_UDP.erase(dest);
                 std::cout << "\nTIMER HAS GONE OFF ON THIS AG PACKET";
+
+                start = simTime();
                 socket.send(agpacket);
+                cChannel *txChannel = gate("out")->getTransmissionChannel();
+                end = txChannel->getTransmissionFinishTime();
+                LogGenerator::recordTransmissionTime((end - start), 0);
             }
         } else {
             pendingPackets--;
             LogGenerator::recordPendingPackets(pendingPackets, 0);
             IoTPacket *pkt = check_and_cast<IoTPacket *>(msg);
+
+            start = simTime();
             socket.send(pkt->dup());
+            cChannel *txChannel = gate("out")->getTransmissionChannel();
+            end = txChannel->getTransmissionFinishTime();
+            LogGenerator::recordTransmissionTime((end - start), 0);
         }
     } else {
         if (strcmp(msg->getClassName(), "CoAP") == 0) {
@@ -100,13 +117,17 @@ void Router::handleMessage(cMessage *msg)
                         attemptsMediumAccess++;
                         if (txFinishTime <= simTime()) {
                             // channel free; send out packet immediately
+                            start = simTime();
                             socket.send(agpacket);
+                            end = txChannel->getTransmissionFinishTime();
+                            LogGenerator::recordTransmissionTime((end - start), 0);
                         }
                         else { //channel busy
                             scheduleAt(txFinishTime, agpacket);
                             pendingPackets = pendingPackets + agpacket->getListOfPackets().size();
                             LogGenerator::recordPendingPackets(pendingPackets, 0);
                             retransmittedAgPacket = true;
+                            LogGenerator::recordBackOffTime(txFinishTime - simTime(), 0);
                         }
                         destinationAndPacket_UDP.erase(destination);
                         //send off single packet
@@ -116,12 +137,16 @@ void Router::handleMessage(cMessage *msg)
                         if (txFinishTimeTwo <= simTime()) {
                             // channel free; send out packet immediately
                             iotPacket->removeControlInfo();
+                            start = simTime();
                             socket.send(iotPacket);
+                            end = txChannelTwo->getTransmissionFinishTime();
+                            LogGenerator::recordTransmissionTime((end - start), 0);
                         }
                         else {
                             scheduleAt(txFinishTimeTwo, iotPacket);
                             pendingPackets++;
                             LogGenerator::recordPendingPackets(pendingPackets, 0);
+                            LogGenerator::recordBackOffTime(txFinishTimeTwo - simTime(), 0);
                         }
                     } else {
                         //add it to to buffer
@@ -148,11 +173,15 @@ void Router::handleMessage(cMessage *msg)
                 if (txFinishTimeTwo <= simTime()) {
                     // channel free; send out packet immediately
                     iotPacket->removeControlInfo();
+                    start = simTime();
                     socket.send(iotPacket);
+                    end = txChannelTwo->getTransmissionFinishTime();
+                    LogGenerator::recordTransmissionTime((end - start), 0);
                 }
                 else {
                     pendingPackets++;
                     scheduleAt(txFinishTimeTwo, iotPacket);
+                    LogGenerator::recordBackOffTime(txFinishTimeTwo - simTime(), 0);
                 }
             }
         }

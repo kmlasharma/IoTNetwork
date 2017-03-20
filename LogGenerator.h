@@ -15,6 +15,7 @@ class LogGenerator
 {
 public:
     static void init(bool aggregate);
+    static void setFreqDelay(double frequency);
     static void recordAttemptsMediumAccess(int type, int tries);
     static void logContentions();
     static void recordDurationTime(int size, omnetpp::simtime_t duration, std::string note);

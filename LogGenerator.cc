@@ -13,7 +13,7 @@ std::ofstream logfile;
 static bool initialised = false;
 std::string aggregateStr = "Not_Aggregated";
 static const std::string FOLDER_NAME = "./Logs/";
-static const std::string NODE_TYPES[3] = {"ROUTER", "INTERMEDIATE ROUTER", "SERVER"};
+static const std::string NODE_TYPES[3] = {"ROUTER", "INTERMEDIATE_ROUTER", "SERVER"};
 std::unordered_map<int, int> MediumAccessCounts; // node type, medium access count
 int numOfPacketsReceivedInterval = 0;
 int sumIntervals = 0;
@@ -22,6 +22,8 @@ int totalErrorPackets = 0;
 int totalPacketsCreated = 0;
 int totalDataProcessed = 0;
 int sumUtilisationIntervals = 0;
+int packetsProcessed = 0;
+
 
 void LogGenerator::init(bool aggregate)
 {
@@ -32,12 +34,21 @@ void LogGenerator::init(bool aggregate)
             aggregateStr = "Aggregated";
         }
         std::string fileName = std::string("Logfile_") + aggregateStr + std::asctime(std::localtime(&result)) + std::string(".txt");
+        std::replace(fileName.begin(), fileName.end(), ' ', '_');
+        fileName.erase(std::remove(fileName.begin(), fileName.end(), '\n'), fileName.end());
         logfile.open(FOLDER_NAME + fileName, std::ios::app);
-        logfile << "\nAGGREGATION SET TO: " << aggregate << "\n\n";
+        std::string boolToStr;
+        if (aggregate)
+            boolToStr = "True.";
+        else
+            boolToStr = "False.";
+        logfile << "\nAggregation set to: " << boolToStr << "\n\n";
         //        logfile.close();
         initialised = true;
     }
+
 }
+
 
 void LogGenerator::recordAttemptsMediumAccess(int type, int tries)
 {
@@ -103,8 +114,10 @@ void LogGenerator::newPacketGenerated() {
 
 void LogGenerator::recordDataProcessed(int newSize) {
     totalDataProcessed += newSize;
+    packetsProcessed++;
     logfile << "\n=== DATA PROCESSED BY SERVER: ===";
     logfile << "\nTotal data processed by server: " << totalDataProcessed;
+    logfile << "\nPackets processed: " << packetsProcessed;
     logfile << "\n==============================";
 }
 
@@ -135,21 +148,6 @@ void LogGenerator::recordBackOffTime(omnetpp::simtime_t backoffTime, int type)
     logfile << "\n=== BACK OFF TIME ===";
     logfile << "\n" << NODE_TYPES[type] << " spent " << backoffTime << " seconds in back off";
 }
-
-//void LogGenerator::recordMediumUtilisation(omnetpp::simtime_t transmissionTime, omnetpp::simtime_t backOffTime, int type)
-//{
-//    sumUtilisationIntervals++;
-//    transmissionAcc = transmissionAcc + transmissionTime;
-//    backOffAcc = backOffAcc + backOffTime;
-//    logfile << "\n=== MEDIUM UTILISATION STATISTICS: ===";
-//    omnetpp::simtime_t total = transmissionTime + backOffTime;
-//    logfile << NODE_TYPES[type] << " spent " << transmissionTime << " microseconds in transmission and " << total << " in both transmission and back off.";
-//    omnetpp::simtime_t percentage = (transmissionTime / total) * 100;
-//    logfile << "\nMedium utilisation percentage is " << percentage << "%";
-//    omnetpp::simtime_t averagePercentage = (transmissionAcc / (transmissionAcc + backOffAcc)) * 100;
-//    logfile << "\nThe current average is: " << averagePercentage;
-//    logfile << "\n==============================";
-//}
 
 
 

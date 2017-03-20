@@ -1,9 +1,19 @@
 import sys
 import locale
+import time
+import os
+import datetime
+import decimal
+
+ts = time.time()
+timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
 
 SEARCH_LINE = "=== PACKET SIZE v DURATION ==="
 TRANSMISSION_SEARCH = "TRANSMISSION TIME"
 BACKOFF_SEARCH = "BACK OFF TIME"
+FOLDER_NAME = "./Simulation_%s/" % (timestamp)
+os.mkdir(FOLDER_NAME)
+
 args = sys.argv
 lastLine = ""
 size_duration_agg = {}
@@ -58,7 +68,7 @@ sizes_encountered_nonagg = {}
 duration_list_nonagg = []
 lastLine = ""
 searchfile = open(notAggrFilename, "r")
-delay_file = open("./PACKET_DELAY_OUTPUTS.txt", 'w')
+delay_file = open(FOLDER_NAME + "PACKET_DELAY_OUTPUTS.txt", 'w')
 for line in searchfile:
 	if SEARCH_LINE in lastLine:
 		newLine = line.strip().split(' ')
@@ -131,7 +141,7 @@ print ("Created delay file.")
 
 ## GENERAL STAT EXTRACTION ##
 print ("Creating general statistics file...")
-genstats_file = open("./GENERAL_STATISTICS.txt", 'w')
+genstats_file = open(FOLDER_NAME + "GENERAL_STATISTICS.txt", 'w')
 
 THROUGHTPUT_SEARCH = "The current average is:"
 throughput_found = False
@@ -158,6 +168,15 @@ packets_recvd_found = False
 packets_recvd_agg = 0
 packets_recvd_non_agg = 0
 
+ARRIVAL_TIME_SEARCH = "Arrival Time:"
+arrival_found = False
+arrival_agg = 0
+arrival_non_agg = 0
+
+PACKETS_PROC_SEARCH = "Packets processed:"
+packets_proc_found = False
+packets_proc_agg = 0
+
 for line in reversed(open(aggrFilename).readlines()):
 	newLine = line.strip()
 	if (THROUGHTPUT_SEARCH in newLine and (not throughput_found)):
@@ -180,8 +199,15 @@ for line in reversed(open(aggrFilename).readlines()):
 		line_array = newLine.split(":")
 		packets_recvd_agg = int(line_array[1])
 		packets_recvd_found = True
-
-	if (throughput_found and medium_access_found and data_processed_found and packets_gen_found and packets_recvd_found):
+	elif PACKETS_PROC_SEARCH in newLine and not packets_proc_found:
+		line_array = newLine.split(":")
+		packets_proc_agg = int(line_array[1])
+		packets_proc_found = True
+	elif ARRIVAL_TIME_SEARCH in newLine and not arrival_found:
+		line_array = newLine.split(" ")
+		arrival_agg = float(line_array[4].replace(',', ""))
+		arrival_found = True
+	if (throughput_found and medium_access_found and data_processed_found and packets_gen_found and packets_recvd_found and packets_proc_found and arrival_found):
 		break
 
 print ("Finished reading in aggregated. Doing non aggregated...")
@@ -190,6 +216,8 @@ medium_access_found = False
 data_processed_found = False
 packets_gen_found = False
 packets_recvd_found = False
+packets_proc_found = False
+arrival_found = False
 
 for line in reversed(open(notAggrFilename).readlines()):
 	newLine = line.strip()
@@ -213,8 +241,12 @@ for line in reversed(open(notAggrFilename).readlines()):
 		line_array = newLine.split(":")
 		packets_recvd_non_agg = int(line_array[1])
 		packets_recvd_found = True
+	elif ARRIVAL_TIME_SEARCH in newLine and not arrival_found:
+		line_array = newLine.split(" ")
+		arrival_non_agg = float(line_array[4].replace(',', ""))
+		arrival_found = True
 
-	if (throughput_found and medium_access_found and data_processed_found and packets_gen_found and packets_recvd_found):
+	if (throughput_found and medium_access_found and data_processed_found and packets_gen_found and packets_recvd_found and packets_proc_found and arrival_found):
 		break
 print ("Finished reading in non aggregated. Writing final data...")
 
@@ -228,6 +260,10 @@ aggMediumUtilisation = '{:.1%}'.format(average_transmission_agg/(average_transmi
 nonAggMediumUtilisation = '{:.1%}'.format(average_transmission_non_agg/(average_transmission_non_agg + average_backoff_non_agg))
 
 locale.setlocale(locale.LC_ALL, 'en_US')
+decDuration = decimal.Decimal(arrival_agg)
+roundedOff = round(decDuration)
+genstats_file.write("\nThis simulation ran for %f seconds.\n" % roundedOff)
+
 genstats_file.write("\n== THROUGHPUT ==")
 genstats_file.write("\nAggregated algorithm: (Average packets received in 20 seconds) " + (locale.format("%d", throughput_agg, grouping=True)))
 genstats_file.write("\nNon aggregated algorithm: (Average packets received in 20 seconds) " + (locale.format("%d", throughput_non_agg, grouping=True)))
@@ -245,6 +281,8 @@ genstats_file.write("\nAggregated algorithm: " + (locale.format("%d", data_proce
 genstats_file.write("\nNon aggregated algorithm: " + (locale.format("%d", data_processed_non_agg, grouping=True)) + " bytes")
 surplus = int(data_processed_non_agg) - int(data_processed_agg)
 genstats_file.write("\nNon aggregated algorithm made servers process " + (locale.format("%d", surplus, grouping=True)) + " more bytes.")
+packetRecvDiff = packets_recvd_non_agg - packets_proc_agg
+genstats_file.write("\nThis means that there was " + (locale.format("%d", packetRecvDiff, grouping=True)) + " more packets in the non aggregated network.")
 genstats_file.write("\n")
 
 genstats_file.write("\n== PACKET GENERATION & RECEIPT ==")

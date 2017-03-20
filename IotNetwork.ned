@@ -11,6 +11,7 @@ network IoTNetwork
         int numRouters;
         int numIntermediateRouters;
         bool doAgg;
+       
     types:
         channel C extends ned.DatarateChannel
         {

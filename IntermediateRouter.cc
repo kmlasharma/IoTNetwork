@@ -42,15 +42,25 @@ void IntermediateRouter::initialize()
 
 void IntermediateRouter::handleMessage(cMessage *msg)
 {
+    simtime_t start;
+    simtime_t end;
     if (msg->isSelfMessage()) {
         if (strcmp(msg->getClassName(), "AggregatedPacket") == 0) {
             AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
             int dest = agpacket->getDestAddress();
             pendingPackets = pendingPackets - (agpacket->getListOfPackets().size());
             if (dest == 0) {
+                start = simTime();
                 socketZero.sendTo(agpacket->dup(), inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
+                cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+                end = txChannel->getTransmissionFinishTime();
+                LogGenerator::recordTransmissionTime((end - start), 1);
             } else {
+                start = simTime();
                 socketOne.sendTo(agpacket->dup(), inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
+                cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+                end = txChannel->getTransmissionFinishTime();
+                LogGenerator::recordTransmissionTime((end - start), 1);
             }
 
         } else if (strcmp(msg->getClassName(), "CoAP") == 0){
@@ -58,9 +68,17 @@ void IntermediateRouter::handleMessage(cMessage *msg)
             int dest = iotPacket->getDestAddress();
             pendingPackets--;
             if (dest == 0) {
+                start = simTime();
                 socketZero.sendTo(iotPacket->dup(), inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
+                cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+                end = txChannel->getTransmissionFinishTime();
+                LogGenerator::recordTransmissionTime((end - start), 1);
             } else {
+                start = simTime();
                 socketOne.sendTo(iotPacket->dup(), inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
+                cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+                end = txChannel->getTransmissionFinishTime();
+                LogGenerator::recordTransmissionTime((end - start), 1);
             }
         }
     } else {
@@ -74,13 +92,21 @@ void IntermediateRouter::handleMessage(cMessage *msg)
                 // channel free; send out packet immediately
                 agpacket->removeControlInfo();
                 if (dest == 0) {
+                    start = simTime();
                     socketZero.sendTo(agpacket, inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
+                    cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+                    end = txChannel->getTransmissionFinishTime();
+                    LogGenerator::recordTransmissionTime((end - start), 1);
                 } else {
+                    start = simTime();
                     socketOne.sendTo(agpacket, inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
+                    cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+                    end = txChannel->getTransmissionFinishTime();
+                    LogGenerator::recordTransmissionTime((end - start), 1);
                 }
-            }
-            else {
+            } else {
                 scheduleAt(txFinishTime, agpacket);
+                LogGenerator::recordBackOffTime(txFinishTime - simTime(), 0);
                 pendingPackets = pendingPackets + (agpacket->getListOfPackets().size());
             }
 
@@ -94,13 +120,22 @@ void IntermediateRouter::handleMessage(cMessage *msg)
                 // channel free; send out packet immediately
                 iotPacket->removeControlInfo();
                 if (dest == 0) {
+                    start = simTime();
                     socketZero.sendTo(iotPacket, inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
+                    cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+                    end = txChannel->getTransmissionFinishTime();
+                    LogGenerator::recordTransmissionTime((end - start), 1);
                 } else {
+                    start = simTime();
                     socketOne.sendTo(iotPacket, inet::L3AddressResolver().resolve("10.0.0.4"), dest, NULL);
+                    cChannel *txChannel = gate("out", dest)->getTransmissionChannel();
+                    end = txChannel->getTransmissionFinishTime();
+                    LogGenerator::recordTransmissionTime((end - start), 1);
                 }
             }
             else {
                 scheduleAt(txFinishTime, iotPacket);
+                LogGenerator::recordBackOffTime(txFinishTime - simTime(), 0);
                 pendingPackets++;
             }
         }

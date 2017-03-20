@@ -128,6 +128,7 @@ inet::IPv4Datagram_Base* IoTClient::setUpLowerPackets()
 {
     inet::EthernetIIFrame *ethernetFrame = new inet::EthernetIIFrame();
     std::cout << "\nETHERNET BYTE LENGTH: " << ethernetFrame->getByteLength();
+    ethernetFrame->addByteLength(8); //add preamble
     cPacket *ipv4Frame = new cPacket();
     inet::IPv4Datagram_Base *newipv4Frame = static_cast<inet::IPv4Datagram_Base *>(ipv4Frame);
     newipv4Frame->setByteLength(20);

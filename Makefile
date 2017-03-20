@@ -132,6 +132,9 @@ clean:
 	$(Q)-rm -f ./*_m.cc ./*_m.h ./*_sm.cc ./*_sm.h
 	$(Q)-rm -f Logs/*_m.cc Logs/*_m.h Logs/*_sm.cc Logs/*_sm.h
 	$(Q)-rm -f scripts/*_m.cc scripts/*_m.h scripts/*_sm.cc scripts/*_sm.h
+	$(Q)-rm -f scripts/Simulation_2017-03-20_16:39:33/*_m.cc scripts/Simulation_2017-03-20_16:39:33/*_m.h scripts/Simulation_2017-03-20_16:39:33/*_sm.cc scripts/Simulation_2017-03-20_16:39:33/*_sm.h
+	$(Q)-rm -f scripts/Simulation_2017-03-20_16:39:42/*_m.cc scripts/Simulation_2017-03-20_16:39:42/*_m.h scripts/Simulation_2017-03-20_16:39:42/*_sm.cc scripts/Simulation_2017-03-20_16:39:42/*_sm.h
+	$(Q)-rm -f scripts/Simulation_2017-03-20_16:39:51/*_m.cc scripts/Simulation_2017-03-20_16:39:51/*_m.h scripts/Simulation_2017-03-20_16:39:51/*_sm.cc scripts/Simulation_2017-03-20_16:39:51/*_sm.h
 
 cleanall: clean
 	$(Q)-rm -rf $(PROJECT_OUTPUT_DIR)

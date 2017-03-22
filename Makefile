@@ -132,9 +132,22 @@ clean:
 	$(Q)-rm -f ./*_m.cc ./*_m.h ./*_sm.cc ./*_sm.h
 	$(Q)-rm -f Logs/*_m.cc Logs/*_m.h Logs/*_sm.cc Logs/*_sm.h
 	$(Q)-rm -f scripts/*_m.cc scripts/*_m.h scripts/*_sm.cc scripts/*_sm.h
-	$(Q)-rm -f scripts/Simulation_2017-03-20_16:39:33/*_m.cc scripts/Simulation_2017-03-20_16:39:33/*_m.h scripts/Simulation_2017-03-20_16:39:33/*_sm.cc scripts/Simulation_2017-03-20_16:39:33/*_sm.h
-	$(Q)-rm -f scripts/Simulation_2017-03-20_16:39:42/*_m.cc scripts/Simulation_2017-03-20_16:39:42/*_m.h scripts/Simulation_2017-03-20_16:39:42/*_sm.cc scripts/Simulation_2017-03-20_16:39:42/*_sm.h
-	$(Q)-rm -f scripts/Simulation_2017-03-20_16:39:51/*_m.cc scripts/Simulation_2017-03-20_16:39:51/*_m.h scripts/Simulation_2017-03-20_16:39:51/*_sm.cc scripts/Simulation_2017-03-20_16:39:51/*_sm.h
+	$(Q)-rm -f scripts/FREQ 0.4s/*_m.cc scripts/FREQ 0.4s/*_m.h scripts/FREQ 0.4s/*_sm.cc scripts/FREQ 0.4s/*_sm.h
+	$(Q)-rm -f scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:28/*_m.cc scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:28/*_m.h scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:28/*_sm.cc scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:28/*_sm.h
+	$(Q)-rm -f scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:51/*_m.cc scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:51/*_m.h scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:51/*_sm.cc scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:51/*_sm.h
+	$(Q)-rm -f scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:58/*_m.cc scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:58/*_m.h scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:58/*_sm.cc scripts/FREQ 0.4s/Simulation_2017-03-20_17:08:58/*_sm.h
+	$(Q)-rm -f scripts/FREQ 0.5s/*_m.cc scripts/FREQ 0.5s/*_m.h scripts/FREQ 0.5s/*_sm.cc scripts/FREQ 0.5s/*_sm.h
+	$(Q)-rm -f scripts/FREQ 0.5s/Simulation_2017-03-22_19:32:58/*_m.cc scripts/FREQ 0.5s/Simulation_2017-03-22_19:32:58/*_m.h scripts/FREQ 0.5s/Simulation_2017-03-22_19:32:58/*_sm.cc scripts/FREQ 0.5s/Simulation_2017-03-22_19:32:58/*_sm.h
+	$(Q)-rm -f scripts/FREQ 0.7s/*_m.cc scripts/FREQ 0.7s/*_m.h scripts/FREQ 0.7s/*_sm.cc scripts/FREQ 0.7s/*_sm.h
+	$(Q)-rm -f scripts/FREQ 0.7s/Simulation_2017-03-22_19:30:54/*_m.cc scripts/FREQ 0.7s/Simulation_2017-03-22_19:30:54/*_m.h scripts/FREQ 0.7s/Simulation_2017-03-22_19:30:54/*_sm.cc scripts/FREQ 0.7s/Simulation_2017-03-22_19:30:54/*_sm.h
+	$(Q)-rm -f scripts/FREQ 1.5s/*_m.cc scripts/FREQ 1.5s/*_m.h scripts/FREQ 1.5s/*_sm.cc scripts/FREQ 1.5s/*_sm.h
+	$(Q)-rm -f scripts/FREQ 1.5s/Simulation_2017-03-22_19:08:31/*_m.cc scripts/FREQ 1.5s/Simulation_2017-03-22_19:08:31/*_m.h scripts/FREQ 1.5s/Simulation_2017-03-22_19:08:31/*_sm.cc scripts/FREQ 1.5s/Simulation_2017-03-22_19:08:31/*_sm.h
+	$(Q)-rm -f scripts/FREQ 1s/*_m.cc scripts/FREQ 1s/*_m.h scripts/FREQ 1s/*_sm.cc scripts/FREQ 1s/*_sm.h
+	$(Q)-rm -f scripts/FREQ 1s/Simulation_2017-03-22_19:04:34/*_m.cc scripts/FREQ 1s/Simulation_2017-03-22_19:04:34/*_m.h scripts/FREQ 1s/Simulation_2017-03-22_19:04:34/*_sm.cc scripts/FREQ 1s/Simulation_2017-03-22_19:04:34/*_sm.h
+	$(Q)-rm -f scripts/FREQ 2.5s/*_m.cc scripts/FREQ 2.5s/*_m.h scripts/FREQ 2.5s/*_sm.cc scripts/FREQ 2.5s/*_sm.h
+	$(Q)-rm -f scripts/FREQ 2.5s/Simulation_2017-03-22_19:14:42/*_m.cc scripts/FREQ 2.5s/Simulation_2017-03-22_19:14:42/*_m.h scripts/FREQ 2.5s/Simulation_2017-03-22_19:14:42/*_sm.cc scripts/FREQ 2.5s/Simulation_2017-03-22_19:14:42/*_sm.h
+	$(Q)-rm -f scripts/FREQ 2s/*_m.cc scripts/FREQ 2s/*_m.h scripts/FREQ 2s/*_sm.cc scripts/FREQ 2s/*_sm.h
+	$(Q)-rm -f scripts/FREQ 2s/Simulation_2017-03-22_19:13:00/*_m.cc scripts/FREQ 2s/Simulation_2017-03-22_19:13:00/*_m.h scripts/FREQ 2s/Simulation_2017-03-22_19:13:00/*_sm.cc scripts/FREQ 2s/Simulation_2017-03-22_19:13:00/*_sm.h
 
 cleanall: clean
 	$(Q)-rm -rf $(PROJECT_OUTPUT_DIR)

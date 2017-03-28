@@ -11,11 +11,11 @@ network IoTNetwork
         int numRouters;
         int numIntermediateRouters;
         bool doAgg;
-       
+		@display("i=misc/node_vs,gold");
     types:
         channel C extends ned.DatarateChannel
         {
-            datarate = 100Mbps;
+            datarate = 54Mbps;
             delay = 100us;
             ber = 1e-10;
         }
@@ -23,7 +23,7 @@ network IoTNetwork
         Server[numServers]: Server {
             parameters:
                 myAddress = index;
-                @display("p=539,145,col");
+                @display("p=666,300,col");
             gates:
                 in[numIntermediateRouters];
         }
@@ -31,7 +31,7 @@ network IoTNetwork
         IntermediateRouter[numIntermediateRouters]: IntermediateRouter {
             parameters:
                 myAddress = index+numServers;
-                @display("p=359,145,col");
+                @display("p=481,300,col");
             gates:
                 in[numRouters/2];
                 out[numServers];
@@ -41,7 +41,7 @@ network IoTNetwork
             parameters:
                 myAddress = index+numServers+numIntermediateRouters;
                 performAggregation = doAgg;
-                @display("p=137,152,col");
+                @display("p=232,250,col");
             gates:
                 in[12/numRouters];
         }
@@ -49,7 +49,8 @@ network IoTNetwork
         IoTClient[12]: IoTClient {
             parameters:
                 myAddress = index+numServers+numIntermediateRouters+numRouters;
-                @display("p=48,97,col");
+                @display("p=60,30,col");
+                
         }
     connections: //0th gate for forward connections to upper hierarchy
         Server[0].in[i] <-- C <-- IntermediateRouter[i].out[0] for i=0..numIntermediateRouters-1;

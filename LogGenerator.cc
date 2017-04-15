@@ -23,6 +23,7 @@ int totalPacketsCreated = 0;
 int totalDataProcessed = 0;
 int sumUtilisationIntervals = 0;
 int packetsProcessed = 0;
+int timerEvents = 0;
 
 
 void LogGenerator::init(bool aggregate)
@@ -48,7 +49,10 @@ void LogGenerator::init(bool aggregate)
     }
 
 }
-
+void LogGenerator::recordTimerEvent() {
+    timerEvents++;
+    logfile << "\n== Total times a timer went off: " << timerEvents << " ==";
+}
 
 void LogGenerator::recordAttemptsMediumAccess(int type, int tries)
 {
@@ -113,7 +117,7 @@ void LogGenerator::newPacketGenerated() {
 }
 
 void LogGenerator::recordDataProcessed(int newSize) {
-    totalDataProcessed += newSize;
+    totalDataProcessed += newSize + 8; //extra udp bytes that simulator doesn't pick up on
     packetsProcessed++;
     logfile << "\n=== DATA PROCESSED BY SERVER: ===";
     logfile << "\nTotal data processed by server: " << totalDataProcessed;

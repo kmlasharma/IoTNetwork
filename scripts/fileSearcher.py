@@ -6,7 +6,7 @@ import datetime
 import decimal
 
 ts = time.time()
-timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
+timestamp = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
 
 SEARCH_LINE = "=== PACKET SIZE v DURATION ==="
 TRANSMISSION_SEARCH = "TRANSMISSION TIME"
@@ -18,8 +18,11 @@ args = sys.argv
 lastLine = ""
 size_duration_agg = {}
 duration_list_agg = []
-aggrFilename = args[1]
-notAggrFilename = args[2]
+
+aggrFilename = ""
+notAggrFilename = ""
+folderToOpen = args[1]
+
 transmissionTimeAccum_agg = 0
 transmissionCount_agg = 0
 backoffAccum_agg = 0
@@ -29,10 +32,20 @@ transmissionCount_non_agg = 0
 backoffAccum_non_agg = 0
 backoffCount_non_agg = 0
 
+for eachfile in os.listdir(folderToOpen):
+	if "Not_Aggregated" in eachfile:
+		notAggrFilename = folderToOpen + "/" + eachfile
+	else:
+		aggrFilename = folderToOpen + "/" + eachfile
+	if aggrFilename != "" and notAggrFilename != "":
+		print ("Set up complete, beginning program")
+		break
+
 ######## PACKET DELAYS MEASUREMENTS ########
 
 if not "filesearcher.py" in aggrFilename:
-	print ("filename: " + aggrFilename)
+	print ("Agg filename: " + aggrFilename)
+	print ("Non filename: " + notAggrFilename)
 	searchfile = open(aggrFilename, "r")
 	print (aggrFilename + ":")
 	for line in searchfile:
@@ -44,7 +57,7 @@ if not "filesearcher.py" in aggrFilename:
 				if (not size in size_duration_agg):
 					duration_list_agg.append(duration)
 					size_duration_agg[size] = duration_list_agg
-					duration_list_agg = []	
+					duration_list_agg = []
 				else:
 					if (not duration in size_duration_agg[size]): 
 						size_duration_agg[size].append(duration)

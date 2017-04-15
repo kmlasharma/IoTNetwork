@@ -26,6 +26,7 @@ class Router : public cSimpleModule
 private:
     bool performAggregation;
     int myAddress;
+    int waitTimeForAggregation;
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
@@ -41,6 +42,7 @@ void Router::initialize()
     std::cout << "\nRouter initialized";
     performAggregation = par("performAggregation");
     myAddress = par("myAddress");
+    waitTimeForAggregation = par("waitTimeForAggregation");
     LogGenerator::init(performAggregation);
     std::cout << "\nROUTER HOST ADDR: " << myAddress;
     std::cout << "\nAggregate: " << performAggregation;
@@ -60,7 +62,6 @@ void Router::handleMessage(cMessage *msg)
             if (retransmittedAgPacket) {
                 AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
                 start = simTime();
-                //                socket.send(agpacket->dup());
                 cChannel *txChannel = gate("out")->getTransmissionChannel();
                 simtime_t txFinishTime = txChannel->getTransmissionFinishTime();
                 attemptsMediumAccess++;
@@ -80,6 +81,7 @@ void Router::handleMessage(cMessage *msg)
                 retransmittedAgPacket = false;
                 pendingPackets = pendingPackets - (agpacket->getListOfPackets().size());
             } else { //the timer has gone off on packet
+                LogGenerator::recordTimerEvent();
                 AggregatedPacket *agpacket = check_and_cast<AggregatedPacket *>(msg);
                 int dest = agpacket->getDestAddress();
                 destinationAndPacket_UDP.erase(dest);
@@ -118,12 +120,7 @@ void Router::handleMessage(cMessage *msg)
                 pendingPackets++;
                 LogGenerator::recordPendingPackets(pendingPackets, 0);
                 LogGenerator::recordBackOffTime(txFinishTimeTwo - simTime(), 0);
-            }
-            //            cChannel *txChannel = gate("out")->getTransmissionChannel();
-            //            end = txChannel->getTransmissionFinishTime();
-            //            LogGenerator::recordTransmissionTime((end - start), 0);
-            //            pendingPackets--;
-            //            LogGenerator::recordPendingPackets(pendingPackets, 0);
+            }       LogGenerator::recordPendingPackets(pendingPackets, 0);
         }
     } else {
         if (strcmp(msg->getClassName(), "CoAP") == 0) {
@@ -136,7 +133,8 @@ void Router::handleMessage(cMessage *msg)
                     std::cout << "\nDestination not registered. Creating a packet entry...";
                     iotPacket->decapsulate();
                     AggregatedPacket *agpacket = initNewAggregatedPacket(iotPacket, destination);
-                    scheduleAt(simTime() + 5, agpacket); //set a 5 second timer on this packet
+                    scheduleAt(simTime() + waitTimeForAggregation, agpacket);
+                    std::cout << "WAITING FOR " << waitTimeForAggregation;
                 } else { // agpacket exists already for this destination
                     std::cout << "\n" << got->first << " is " << got->second;
                     AggregatedPacket *agpacket = got->second;
@@ -241,6 +239,7 @@ inet::IPv4Datagram_Base* Router::setUpLowerPackets()
 {
     inet::EthernetIIFrame *ethernetFrame = new inet::EthernetIIFrame();
     std::cout << "\nETHERNET BYTE LENGTH: " << ethernetFrame->getByteLength();
+    ethernetFrame->addByteLength(8); //add preamble
     cPacket *ipv4Frame = new cPacket();
     inet::IPv4Datagram_Base *newipv4Frame = static_cast<inet::IPv4Datagram_Base *>(ipv4Frame);
     newipv4Frame->setByteLength(20);

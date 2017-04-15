@@ -1,0 +1,25 @@
+
+This simulation ran for 1000.000000 seconds.
+
+== THROUGHPUT ==
+Aggregated algorithm: (Average packets received in 20 seconds) 402
+Non aggregated algorithm: (Average packets received in 20 seconds) 401
+
+== MEDIUM ACCESS ATTEMPTS ==
+Aggregated algorithm: 285,730,605
+Non aggregated algorithm: 605,320,023
+Non aggregated algorithm contended 319,589,418 more times.
+
+== TOTAL DATA PROCESSED BY SERVER ==
+Aggregated algorithm: 19,834,107 bytes
+Non aggregated algorithm: 20,957,676 bytes
+Non aggregated algorithm made servers process 1,123,569 more bytes.
+This means that there was 21,462 more packets in the non aggregated network.
+
+== PACKET GENERATION & RECEIPT ==
+Aggregated algorithm: 40254 packets were generated and 40233 packets were received
+Non aggregated algorithm: 40150 packets were generated and 40150 packets were received
+
+== MEDIUM UTILISATION ==
+Aggregated medium utilisation: 55.4%
+Non Aggregated medium utilisation: 43.8%

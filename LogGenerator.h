@@ -29,6 +29,7 @@ public:
     static void recordMediumUtilisation(double transmissionTime, double backOffTime, int typ);
     static void recordTransmissionTime(omnetpp::simtime_t transmissionTime, int type);
     static void recordBackOffTime(omnetpp::simtime_t backoffTime, int type);
+    static void recordTimerEvent();
 
 
 

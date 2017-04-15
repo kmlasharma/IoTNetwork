@@ -11,6 +11,7 @@ network IoTNetwork
         int numRouters;
         int numIntermediateRouters;
         bool doAgg;
+        int waitTime;
 		@display("i=misc/node_vs,gold");
     types:
         channel C extends ned.DatarateChannel
@@ -41,6 +42,7 @@ network IoTNetwork
             parameters:
                 myAddress = index+numServers+numIntermediateRouters;
                 performAggregation = doAgg;
+                waitTimeForAggregation = waitTime;
                 @display("p=232,250,col");
             gates:
                 in[12/numRouters];
